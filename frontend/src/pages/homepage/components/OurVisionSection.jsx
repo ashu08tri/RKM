@@ -125,11 +125,6 @@ const OurVisionSection = ({ language }) => {
     
     setClickCount({ ...clickCount, [tab]: newCount });
     setActiveTab(tab);
-    
-    // Second click expands to full page view
-    if (newCount === 2) {
-      setExpandedView(tab);
-    }
   };
 
   const closeExpandedView = () => {
@@ -363,9 +358,9 @@ const OurVisionSection = ({ language }) => {
         isOpen={isModalOpen} 
         onClose={closeModal} 
         title={modalContent.title || modalContent.name}
-        size="2xl"
+        size="5xl"
       >
-        <div className="max-h-96 overflow-y-auto">
+        <div className="w-full max-h-96 overflow-y-auto z-50">
           {/* Content Image */}
           {(modalContent.thumbnailUrl || modalContent.thumbnailPath || modalContent.filePath || modalContent.coverImage) && (
             <div className="mb-6">
@@ -373,9 +368,9 @@ const OurVisionSection = ({ language }) => {
                 <Image 
                   src={modalContent.thumbnailUrl || modalContent.thumbnailPath || modalContent.filePath || modalContent.coverImage || '/assets/images/no_image.png'}
                   alt={modalContent.title || modalContent.name}
-                  className="w-full h-64 object-cover"
+                  className="w-full object-cover"
                 />
-                {modalContent.category && (
+                {/* {modalContent.category && (
                   <div className="absolute top-4 left-4">
                     <span className="bg-primary text-white px-3 py-1 rounded-full text-sm font-medium">
                       {modalContent.category}
@@ -388,7 +383,7 @@ const OurVisionSection = ({ language }) => {
                       {modalContent.status || modalContent.fileType}
                     </span>
                   </div>
-                )}
+                )} */}
               </div>
             </div>
           )}

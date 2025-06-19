@@ -35,6 +35,8 @@ const andolanRoutes = require('./routes/andolanRoutes');
 const informationRoutes = require('./routes/informationRoutes');
 const visionRoutes = require('./routes/visionRoutes');
 const pdfRoutes = require('./routes/pdfRoutes');
+const razorpayRoutes = require('./routes/razorpayRoutes');
+const timelineRoutes = require('./routes/timelineRoutes');
 
 // Import middleware
 const { notFound, errorHandler } = require('./middleware/errorMiddleware');
@@ -59,7 +61,13 @@ app.use('/api/andolan', andolanRoutes);
 app.use('/api/information', informationRoutes);
 app.use('/api/vision', visionRoutes);
 app.use('/api/pdf', pdfRoutes);
+app.use('/api/donate', razorpayRoutes);
+app.use('/api/timeline', timelineRoutes);
 // app.use('/api/admin', require('./routes/adminRoutes')); // Placeholder for specific admin panel routes if needed beyond CRUD
+
+app.get('/getKey', (req, res) => {
+  res.json(process.env.RAZORPAY_KEY_ID)
+})
 
 // Custom error handling middleware
 app.use(notFound);

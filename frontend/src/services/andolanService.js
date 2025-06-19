@@ -1,6 +1,6 @@
 import api from './api';
 
-const API_URL = '/andolan';
+const API_URL = '/api/andolan';
 
 const getAndolanEvents = () => {
   return api.get(API_URL);

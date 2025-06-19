@@ -1,6 +1,6 @@
 import api from './api';
 
-const API_URL = '/vision';
+const API_URL = '/api/vision';
 
 const getVision = () => {
   return api.get(API_URL);

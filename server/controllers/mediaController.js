@@ -39,8 +39,6 @@ const createMediaItem = asyncHandler(async (req, res) => {
   try {
     // Extract data from request
     const { title, description, type, category, tabAssociation, gallery } = req.body;
-    console.log('Request body:', req.body);
-    console.log('Request files:', req.files);
 
     // Validate required fields
     if (!title) {
@@ -171,9 +169,7 @@ const createMediaItem = asyncHandler(async (req, res) => {
 // @access  Private/Admin
 const updateMediaItem = asyncHandler(async (req, res) => {
   try {
-    const { title, description, type, fileType, category, tabAssociation, gallery } = req.body;
-    console.log('Update request body:', req.body);
-    console.log('Update request files:', req.files);
+    const { title, description, type, fileType, category, tabAssociation, gallery, uploadDate } = req.body;
 
     const mediaItem = await Media.findById(req.params.id);
 
@@ -323,6 +319,7 @@ const updateMediaItem = asyncHandler(async (req, res) => {
     if (description !== undefined) mediaItem.description = description;
     if (category !== undefined) mediaItem.category = category;
     if (tabAssociation !== undefined) mediaItem.tabAssociation = tabAssociation;
+    if (uploadDate !== undefined) mediaItem.uploadDate = uploadDate;
     
     mediaItem.uploadedBy = req.user._id; // Update who last modified it
 

@@ -6,6 +6,7 @@ import QuickActions from './components/QuickActions';
 import RecentActivity from './components/RecentActivity';
 import ContentManagement from './components/ContentManagement';
 import MemberApplications from './components/MemberApplications';
+import TimelineManagement from './components/TimelineManagement';
 
 const AdminDashboard = () => {
   const [activeSection, setActiveSection] = useState('content');
@@ -61,6 +62,13 @@ const AdminDashboard = () => {
       action: "publish-content"
     },
     {
+      title: "Manage Timeline",
+      description: "Add or edit timeline entries and milestones",
+      icon: "Clock", 
+      count: null,
+      action: "manage-timeline"
+    },
+    {
       title: "Upload Media",
       description: "Add new images and videos to media library",
       icon: "Upload",
@@ -78,11 +86,33 @@ const AdminDashboard = () => {
 
   const sectionTabs = [
     { id: 'content', label: 'Content Management', icon: 'FileText' },
-    { id: 'members', label: 'Member Applications', icon: 'Users' }
+    { id: 'members', label: 'Member Applications', icon: 'Users' },
+    { id: 'timeline', label: 'Timeline Management', icon: 'Clock' }
   ];
 
   const handleQuickAction = (action) => {
     console.log(`Quick action triggered: ${action}`);
+    
+    // Set the active section based on the action
+    switch (action) {
+      case 'approve-applications':
+        setActiveSection('members');
+        break;
+      case 'publish-content':
+        setActiveSection('content');
+        break;
+      case 'manage-timeline':
+        setActiveSection('timeline');
+        break;
+      case 'upload-media':
+        // Handle media upload
+        break;
+      case 'send-notifications':
+        // Handle notifications
+        break;
+      default:
+        break;
+    }
   };
 
   const renderActiveSection = () => {
@@ -91,6 +121,8 @@ const AdminDashboard = () => {
         return <ContentManagement />;
       case 'members':
         return <MemberApplications />;
+      case 'timeline':
+        return <TimelineManagement />;
       default:
         return (
           <div className="space-y-8">

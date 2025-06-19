@@ -46,7 +46,7 @@ const ProgressIndicator = ({ progress, currentYear, totalMilestones }) => {
           >
             {/* Animated shine effect */}
             <motion.div
-              className="absolute inset-0 bg-gradient-to-r from-transparent via-white via-white to-transparent opacity-30"
+              className="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-30"
               animate={{ x: ['-100%', '100%'] }}
               transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
             />

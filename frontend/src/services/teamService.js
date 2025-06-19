@@ -1,6 +1,6 @@
 import api from './api';
 
-const API_URL = '/team';
+const API_URL = '/api/team';
 
 const getTeamMembers = () => {
   return api.get(API_URL);

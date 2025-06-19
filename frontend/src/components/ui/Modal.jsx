@@ -20,6 +20,7 @@ const Modal = ({
     lg: 'max-w-lg',
     xl: 'max-w-xl',
     '2xl': 'max-w-2xl',
+    '5xl': 'max-w-5xl',
     full: 'max-w-full mx-4'
   };
 
@@ -104,7 +105,7 @@ const Modal = ({
 
   return (
     <div 
-      className="modal-backdrop sticky-modal flex items-start justify-center p-4 pt-20"
+      className="modal-backdrop sticky-modal flex items-start justify-center p-4 pt-28"
       onClick={handleBackdropClick}
       role="dialog"
       aria-modal="true"

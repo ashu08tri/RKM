@@ -13,7 +13,7 @@ const TeamSection = ({ language }) => {
     const fetchTeamMembers = async () => {
       try {
         setLoading(true);
-        const response = await api.get('/team');
+        const response = await api.get('/api/team');
         // Sort by createdAt as we don't have displayOrder anymore
         const sortedMembers = response.data.sort((a, b) =>
           new Date(a.createdAt) - new Date(b.createdAt)

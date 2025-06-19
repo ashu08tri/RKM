@@ -122,10 +122,6 @@ const DynamicForm = ({ fieldsConfig, initialData, onSubmit, onCancel, isLoading 
       }
     });
 
-    console.log('Form data initialized:', defaultData);
-    console.log('Image previews:', initialPreviews);
-    console.log('Multiple files:', initialMultipleFiles);
-
     setFormData(defaultData);
     setPreviews(initialPreviews);
     setMultipleFiles(initialMultipleFiles);

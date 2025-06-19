@@ -1,6 +1,6 @@
 import api from './api';
 
-const API_URL = '/programs';
+const API_URL = '/api/programs';
 
 const getPrograms = () => api.get(API_URL);
 const getProgramById = (id) => api.get(`${API_URL}/${id}`);

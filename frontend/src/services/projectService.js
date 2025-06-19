@@ -1,6 +1,6 @@
 import api from './api';
 
-const API_URL = '/projects';
+const API_URL = '/api/projects';
 
 const getProjects = () => api.get(API_URL);
 const getProjectById = (id) => api.get(`${API_URL}/${id}`);

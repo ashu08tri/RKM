@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 import banner1 from '/assets/images/banner1.jpeg';
 import banner2 from '/assets/images/banner2.webp';
-import banner3 from '/assets/images/banner3.webp';
+import banner3 from '/assets/images/banner3.png';
 
 const banners = [banner1, banner2, banner3];
 
@@ -37,8 +37,8 @@ const HeroSection = ({ onMemberRegistration, onYouthLeadership }) => {
   };
 
   return (
-    <div className='w-full overflow-hidden pt-20'>
-      <section className="relative h-[90vh]">
+    <div className='w-full overflow-hidden pt-24'>
+      <section className="relative h-[88vh]">
       <AnimatePresence custom={direction}>
         <motion.img
           key={index}
@@ -54,7 +54,7 @@ const HeroSection = ({ onMemberRegistration, onYouthLeadership }) => {
       </AnimatePresence>
 
       {/* Buttons at bottom */}
-      <div className="absolute bottom-2 left-0 right-0 z-10 flex flex-col sm:flex-row justify-center items-center gap-4 px-4">
+      {/* <div className="absolute bottom-2 left-0 right-0 z-10 flex flex-col sm:flex-row justify-center items-center gap-4 px-4">
         <button
           onClick={onMemberRegistration}
           className="btn-primary w-full sm:w-auto px-6 py-2 text-lg font-semibold shadow-lg hover:shadow-xl"
@@ -67,7 +67,7 @@ const HeroSection = ({ onMemberRegistration, onYouthLeadership }) => {
         >
           Youth Leadership Program
         </button>
-      </div>
+      </div> */}
     </section>
     </div>
   );

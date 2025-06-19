@@ -341,6 +341,7 @@ const ContentManagement = () => {
           { name: 'thumbnail', label: 'Thumbnail Image (for videos)', type: 'file', required: false },
           { name: 'gallery', label: 'Gallery Images URLs (comma separated)', type: 'textarea', placeholder: 'https://example.com/image1.jpg, https://example.com/image2.jpg', required: false },
           { name: 'category', label: 'Category', type: 'text', required: false },
+          { name: 'uploadDate', label: 'Date', type: 'date', required: false },
         ];
       case 'programs':
         return [
@@ -351,6 +352,7 @@ const ContentManagement = () => {
           { name: 'coverImage', label: isEditing ? 'Cover Image (only if changing)' : 'Cover Image', type: 'file', required: !isEditing },
           { name: 'gallery', label: 'Gallery Images (up to 10)', type: 'file-multiple', maxCount: 10, required: false },
           { name: 'status', label: 'Status', type: 'select', options: ['Ongoing', 'Completed', 'Upcoming', 'Draft'], required: true },
+          { name: 'uploadDate', label: 'Date', type: 'date', required: false },
         ];
       case 'projects':
         return [
@@ -363,6 +365,7 @@ const ContentManagement = () => {
           { name: 'expectedStartDate', label: 'Expected Start Date', type: 'date', required: false },
           { name: 'location', label: 'Location', type: 'text', required: false },
           { name: 'status', label: 'Status', type: 'select', options: ['Planned', 'In Progress', 'On Hold', 'Completed', 'Cancelled', 'Draft'], required: true },
+          { name: 'uploadDate', label: 'Date', type: 'date', required: false },
         ];
       case 'team':
         return [
@@ -380,6 +383,7 @@ const ContentManagement = () => {
           { name: 'image', label: isEditing ? 'Image (only if changing)' : 'Image', type: 'file', required: !isEditing },
           { name: 'category', label: 'Category', type: 'select', options: ['Article', 'Announcement', 'News'], required: true },
           { name: 'status', label: 'Status', type: 'select', options: ['draft', 'published'], required: true },
+          { name: 'uploadDate', label: 'Date', type: 'date', required: false },
         ];
       default:
         return [];

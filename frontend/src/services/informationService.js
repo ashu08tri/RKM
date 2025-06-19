@@ -1,6 +1,6 @@
 import api from './api';
 
-const API_URL = '/information';
+const API_URL = '/api/information';
 
 const getInformationItems = () => {
   return api.get(API_URL);
