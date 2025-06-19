@@ -3,9 +3,9 @@ import { API_BASE_URL } from '../config/constants';
 
 const baseURL = `${API_BASE_URL}/api/members`;
 // Fallback URL for when local server is not available
-const fallbackURL = 'https://rashtriya-kishan-manch-api.onrender.com/api/members';
+const fallbackURL = 'https://api.rashtriyakisanmanch.com/api/members';
 const pdfURL = `${API_BASE_URL}/api/pdf`;
-const fallbackPdfURL = 'https://rashtriya-kishan-manch-api.onrender.com/api/pdf';
+const fallbackPdfURL = 'https://api.rashtriyakisanmanch.com/api/pdf';
 
 const memberService = {
   // Register a new member

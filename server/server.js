@@ -16,7 +16,7 @@ app.use(express.json());
 
 // Enable CORS with specific options
 app.use(cors({
-  origin: ['http://localhost:4028', 'http://localhost:3000', 'https://rashtriya-kishan-manch.vercel.app'],
+  origin: ['https://api.rashtriyakisanmanch.com', 'http://localhost:4028', 'http://localhost:3000', 'https://rashtriya-kishan-manch.vercel.app'],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true

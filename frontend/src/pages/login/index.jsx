@@ -119,23 +119,6 @@ const Login = () => {
               </button>
             </div>
           </form>
-
-          <div className="mt-6">
-            <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
-              <div className="flex">
-                <div className="flex-shrink-0">
-                  <Icon name="Info" size={18} className="text-blue-600" />
-                </div>
-                <div className="ml-3">
-                  <h3 className="text-sm font-medium text-blue-800">Demo Credentials</h3>
-                  <div className="mt-2 text-sm text-blue-700">
-                    <p>Email: admin@example.com</p>
-                    <p>Password: admin123</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
     </div>
