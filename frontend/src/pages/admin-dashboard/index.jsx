@@ -1,0 +1,180 @@
+import React, { useState } from 'react';
+import Icon from 'components/AppIcon';
+import Breadcrumb from 'components/ui/Breadcrumb';
+import MetricsCard from './components/MetricsCard';
+import QuickActions from './components/QuickActions';
+import RecentActivity from './components/RecentActivity';
+import ContentManagement from './components/ContentManagement';
+import MemberApplications from './components/MemberApplications';
+
+const AdminDashboard = () => {
+  const [activeSection, setActiveSection] = useState('content');
+
+  const metricsData = [
+    {
+      title: "Total Members",
+      value: "2,847",
+      change: "+12%",
+      changeType: "increase",
+      icon: "Users",
+      description: "Active registered members"
+    },
+    {
+      title: "Pending Applications",
+      value: "156",
+      change: "+8",
+      changeType: "increase",
+      icon: "Clock",
+      description: "Awaiting verification"
+    },
+    {
+      title: "Content Engagement",
+      value: "89.2%",
+      change: "+5.3%",
+      changeType: "increase",
+      icon: "TrendingUp",
+      description: "Average engagement rate"
+    },
+    {
+      title: "System Health",
+      value: "99.8%",
+      change: "0%",
+      changeType: "neutral",
+      icon: "Shield",
+      description: "Uptime this month"
+    }
+  ];
+
+  const quickActionsData = [
+    {
+      title: "Approve Applications",
+      description: "Review and approve pending member applications",
+      icon: "CheckCircle",
+      count: 23,
+      action: "approve-applications"
+    },
+    {
+      title: "Publish Content",
+      description: "Publish drafted articles and announcements",
+      icon: "FileText",
+      count: 5,
+      action: "publish-content"
+    },
+    {
+      title: "Upload Media",
+      description: "Add new images and videos to media library",
+      icon: "Upload",
+      count: null,
+      action: "upload-media"
+    },
+    {
+      title: "Send Notifications",
+      description: "Send announcements to all members",
+      icon: "Bell",
+      count: null,
+      action: "send-notifications"
+    }
+  ];
+
+  const sectionTabs = [
+    { id: 'content', label: 'Content Management', icon: 'FileText' },
+    { id: 'members', label: 'Member Applications', icon: 'Users' }
+  ];
+
+  const handleQuickAction = (action) => {
+    console.log(`Quick action triggered: ${action}`);
+  };
+
+  const renderActiveSection = () => {
+    switch (activeSection) {
+      case 'content':
+        return <ContentManagement />;
+      case 'members':
+        return <MemberApplications />;
+      default:
+        return (
+          <div className="space-y-8">
+            {/* Metrics Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+              {metricsData.map((metric, index) => (
+                <MetricsCard key={index} {...metric} />
+              ))}
+            </div>
+
+            {/* Quick Actions and Recent Activity */}
+            <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
+              <div className="xl:col-span-2">
+                <QuickActions 
+                  actions={quickActionsData} 
+                  onActionClick={handleQuickAction} 
+                />
+              </div>
+              <div>
+                <RecentActivity />
+              </div>
+            </div>
+          </div>
+        );
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-background pt-20">
+      <div className="container-custom py-8">
+        <Breadcrumb />
+        
+        {/* Page Header */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-heading font-bold text-text-primary mb-2">
+                Admin Dashboard
+              </h1>
+              <p className="text-text-secondary font-body">
+                Manage your agricultural community platform
+              </p>
+            </div>
+            
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-2 text-sm text-text-secondary">
+                <Icon name="Clock" size={16} />
+                <span>Last updated: {new Date().toLocaleTimeString()}</span>
+              </div>
+              
+              <button className="btn-primary flex items-center space-x-2">
+                <Icon name="RefreshCw" size={16} />
+                <span>Refresh</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Section Tabs */}
+        <div className="mb-8">
+          <div className="border-b border-border">
+            <nav className="flex space-x-8">
+              {sectionTabs.map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveSection(tab.id)}
+                  className={`flex items-center space-x-2 py-4 px-2 border-b-2 font-medium text-sm transition-smooth ${
+                    activeSection === tab.id
+                      ? 'border-primary text-primary' :'border-transparent text-text-secondary hover:text-text-primary hover:border-border'
+                  }`}
+                >
+                  <Icon name={tab.icon} size={18} />
+                  <span>{tab.label}</span>
+                </button>
+              ))}
+            </nav>
+          </div>
+        </div>
+
+        {/* Active Section Content */}
+        {renderActiveSection()}
+      </div>
+    </div>
+  );
+};
+
+export default AdminDashboard;
