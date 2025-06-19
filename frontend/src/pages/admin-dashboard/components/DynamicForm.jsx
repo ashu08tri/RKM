@@ -1,11 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react';
 
-const DynamicForm = ({ fieldsConfig, initialData, onSubmit, onCancel, isLoading }) => {
+const DynamicForm = ({ fieldsConfig = [], initialData, onSubmit, onCancel, isLoading }) => {
   const [formData, setFormData] = useState({});
   const [previews, setPreviews] = useState({});
   const [multipleFiles, setMultipleFiles] = useState({});
   // Keep track of accumulated files for multiple file inputs
   const filesAccumulator = useRef({});
+
+  // Ensure fieldsConfig is always an array
+  const safeFieldsConfig = Array.isArray(fieldsConfig) ? fieldsConfig : [];
 
   useEffect(() => {
     // Handle form data initialization when editing an existing item
@@ -25,7 +28,7 @@ const DynamicForm = ({ fieldsConfig, initialData, onSubmit, onCancel, isLoading 
       });
     }
 
-    fieldsConfig.forEach(field => {
+    safeFieldsConfig.forEach(field => {
       if (field.type === 'file') {
         defaultData[field.name] = null; // Initialize file fields to null
         
@@ -63,13 +66,14 @@ const DynamicForm = ({ fieldsConfig, initialData, onSubmit, onCancel, isLoading 
           initialMultipleFiles[field.name] = galleryImages.map(img => {
             if (typeof img === 'string') return img;
             if (img && typeof img === 'object') {
+              // If object has filePath, use that directly (Cloudinary URL)
+              if (img.filePath) return img.filePath;
               // If object has url property, use that
               if (img.url) return img.url;
-              // If object has publicId but no url, construct a URL
-              if (img.publicId) return `/uploads/${img.publicId}`;
+              // If object has publicId but no url or filePath, keep as is
+              if (img.publicId) return img.publicId;
               // Try other common properties
               if (img.path) return img.path;
-              if (img.filePath) return img.filePath;
             }
             return null;
           }).filter(Boolean); // Remove any null/undefined entries
@@ -122,13 +126,19 @@ const DynamicForm = ({ fieldsConfig, initialData, onSubmit, onCancel, isLoading 
       }
     });
 
+    console.log('Form data initialized:', defaultData);
+    console.log('Image previews:', initialPreviews);
+    console.log('Multiple files:', initialMultipleFiles);
+
     setFormData(defaultData);
     setPreviews(initialPreviews);
     setMultipleFiles(initialMultipleFiles);
-  }, [initialData, fieldsConfig]);
+  }, [initialData, safeFieldsConfig]);
 
   const handleChange = (e) => {
-    const { name, value, type, files } = e.target;
+    const { name, value, type, files, checked } = e.target;
+    
+    // Handle different input types
     if (type === 'file') {
       // Check if this is a multiple file field
       if (e.target.multiple) {
@@ -178,7 +188,12 @@ const DynamicForm = ({ fieldsConfig, initialData, onSubmit, onCancel, isLoading 
           }));
         }
       }
+    } else if (type === 'checkbox') {
+      // Handle checkbox values
+      setFormData(prev => ({ ...prev, [name]: checked }));
+      console.log(`Checkbox ${name} changed to:`, checked);
     } else {
+      // Handle other input types
       setFormData(prev => ({ ...prev, [name]: value }));
     }
   };
@@ -208,8 +223,51 @@ const DynamicForm = ({ fieldsConfig, initialData, onSubmit, onCancel, isLoading 
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Pass both formData and additional data (including multipleFiles) to onSubmit
-    onSubmit(formData, { multipleFiles });
+    
+    // Create a FormData object to handle file uploads
+    const formDataToSubmit = new FormData();
+    
+    // Add all form fields to the FormData object
+    for (const key in formData) {
+      const value = formData[key];
+      
+      // Skip gallery field - we'll handle it separately to avoid duplication
+      if (key === 'gallery') continue;
+      
+      // Handle file uploads differently
+      if (value instanceof File) {
+        formDataToSubmit.append(key, value);
+      } else if (Array.isArray(value) && value.length > 0 && value[0] instanceof File) {
+        // Handle multiple files
+        value.forEach(file => {
+          formDataToSubmit.append(key, file);
+        });
+      } else if (typeof value === 'boolean') {
+        // Handle boolean values
+        formDataToSubmit.append(key, value);
+      } else if (value !== null && value !== undefined) {
+        // Handle other values
+        formDataToSubmit.append(key, value);
+      }
+    }
+    
+    // Handle gallery images specifically to avoid duplication
+    if (filesAccumulator.current.gallery && filesAccumulator.current.gallery.length > 0) {
+      console.log(`Adding ${filesAccumulator.current.gallery.length} gallery files to form data`);
+      // Add each file with the same field name to properly handle multiple files
+      filesAccumulator.current.gallery.forEach(file => {
+        formDataToSubmit.append('gallery', file);
+      });
+    } 
+    // If no new files are uploaded but we have existing gallery URLs, pass those
+    else if (multipleFiles.gallery && multipleFiles.gallery.length > 0 && 
+             Array.isArray(multipleFiles.gallery)) {
+      console.log(`Adding ${multipleFiles.gallery.length} existing gallery URLs to form data`);
+      formDataToSubmit.append('galleryData', JSON.stringify(multipleFiles.gallery));
+    }
+    
+    // Pass the FormData object to onSubmit
+    onSubmit(formDataToSubmit);
   };
 
   const renderField = (field) => {
@@ -219,7 +277,7 @@ const DynamicForm = ({ fieldsConfig, initialData, onSubmit, onCancel, isLoading 
       onChange: handleChange,
       required: field.required,
       disabled: isLoading,
-      className: 'mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm',
+      className: field.type !== 'checkbox' ? 'mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm' : '',
     };
 
     switch (field.type) {
@@ -235,6 +293,18 @@ const DynamicForm = ({ fieldsConfig, initialData, onSubmit, onCancel, isLoading 
                 : <option key={option} value={option}>{option}</option>
             ))}
           </select>
+        );
+      case 'checkbox':
+        return (
+          <div className="flex items-center">
+            <input 
+              {...commonProps}
+              type="checkbox"
+              checked={formData[field.name] === true}
+              className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
+            />
+            <span className="ml-2 text-sm text-gray-600">{field.description || ''}</span>
+          </div>
         );
       case 'file-multiple':
         return (
@@ -360,6 +430,7 @@ const DynamicForm = ({ fieldsConfig, initialData, onSubmit, onCancel, isLoading 
         );
       case 'text':
       case 'number':
+      case 'date':
       default:
         return <input {...commonProps} type={field.type} value={formData[field.name] || ''} placeholder={field.placeholder || ''} />;
     }
@@ -367,7 +438,7 @@ const DynamicForm = ({ fieldsConfig, initialData, onSubmit, onCancel, isLoading 
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      {fieldsConfig.map(field => (
+      {safeFieldsConfig.map(field => (
         <div key={field.name}>
           <label htmlFor={field.name} className="block text-sm font-medium text-gray-700">{field.label}</label>
           {renderField(field)}

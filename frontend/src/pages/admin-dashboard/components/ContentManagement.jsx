@@ -180,152 +180,117 @@ const ContentManagement = () => {
   };
 
   const handleFormSubmit = async (formData, additionalData = {}) => {
-    setLoading(true);
-    setError(null);
-    
+  setLoading(true);
+  setError(null);
+
+  const isRawFormData = formData instanceof FormData;
+  const data = isRawFormData ? formData : new FormData();
+  const { multipleFiles } = additionalData;
+
+  // Only do this if formData is not already FormData (i.e., raw object)
+  if (!isRawFormData) {
     console.log('Form data before processing:', formData);
     console.log('Additional form data:', additionalData);
-    
-    const data = new FormData();
-    const { multipleFiles } = additionalData;
-    
-    // Check if we're editing and file fields are empty
+
     const isEditing = currentItem && currentItem._id;
     const fileFieldsToSkip = [];
-    
-    // If editing and file fields are empty, we need to skip them
+
     if (isEditing) {
       const fileFields = ['mediafile', 'photo', 'image', 'coverImage', 'imageUrl', 'photoUrl'];
       fileFields.forEach(field => {
-        // If the field exists in formData but is null/empty, add to skip list
         if (field in formData && !formData[field]) {
           fileFieldsToSkip.push(field);
         }
       });
-      console.log('File fields to skip (empty during edit):', fileFieldsToSkip);
     }
-    
-    // ----- GALLERY HANDLING - COMPLETELY REWRITTEN -----
-    // Remove gallery from formData - we'll handle it separately
+
+    // Gallery handling
     const galleryFiles = formData.gallery;
-    delete formData.gallery; // Remove it to avoid [object Object] serialization issues
-    
-    // Check if we have actual gallery files to upload
-    if (galleryFiles && 
-        ((typeof galleryFiles === 'object' && galleryFiles.length > 0) || 
-         (galleryFiles instanceof FileList && galleryFiles.length > 0))) {
-      
-      console.log('Processing gallery files. Type:', typeof galleryFiles, 'Is FileList:', galleryFiles instanceof FileList, 'Length:', galleryFiles.length);
-      
-      // Process each file individually and append to FormData
-      // This is the key part - we must append each file separately with the same field name
+    delete formData.gallery;
+
+    if (galleryFiles && galleryFiles.length > 0) {
       for (let i = 0; i < galleryFiles.length; i++) {
         const file = galleryFiles[i];
         if (file instanceof File) {
           data.append('gallery', file);
-          console.log(`Appending gallery file ${i}:`, file.name);
-        } else {
-          console.log(`Skipping invalid gallery item at index ${i}:`, file);
         }
       }
-      
-      // When editing, we need to tell the backend to replace all existing gallery images
-      // by setting a flag that indicates all previous images should be removed
       if (isEditing) {
         data.append('replaceGallery', 'true');
-        console.log('Set replaceGallery flag to true - this will replace all existing images');
       }
     } else if (isEditing) {
-      // If we're editing and there are no gallery files being uploaded,
-      // we need to check if the user has removed all images
-      
-      if (multipleFiles?.gallery && multipleFiles.gallery.length === 0) {
-        // User has removed all images - tell backend to clear the gallery
+      if (multipleFiles?.gallery?.length === 0) {
         data.append('clearGallery', 'true');
-        console.log('Set clearGallery flag to true - user has removed all images');
-      } else if (multipleFiles?.gallery && multipleFiles.gallery.length > 0) {
-        // User has kept some existing images - send the current list of gallery URLs
-        // We need to filter out blob URLs which represent new images that were already handled above
+      } else if (multipleFiles?.gallery?.length > 0) {
         const existingImages = multipleFiles.gallery
           .filter(url => !url.startsWith('blob:'))
           .map(url => ({
             url: url,
             publicId: url.split('/').pop().split('.')[0]
           }));
-          
+
         if (existingImages.length > 0) {
           data.append('existingGallery', JSON.stringify(existingImages));
-          console.log('Sending existing gallery images:', existingImages);
         } else {
-          // All URLs are blob URLs (new images), but they were handled above
-          // or user has removed all existing images
           data.append('replaceGallery', 'true');
-          console.log('Only new images in gallery or all images removed, replacing existing gallery');
         }
       }
-    } else {
-      console.log('No gallery files to process');
     }
-    // ----- END GALLERY HANDLING -----
-    
-    // Handle date fields
+
+    // Convert expectedStartDate to ISO
     if (formData.expectedStartDate) {
-      // Ensure date is in ISO format
       const date = new Date(formData.expectedStartDate);
       if (!isNaN(date.getTime())) {
         formData.expectedStartDate = date.toISOString();
       }
     }
-    
-    // Handle special case for programs and projects - map title to name if needed
+
     if ((activeTab === 'programs' || activeTab === 'projects') && formData.title && !formData.name) {
       formData.name = formData.title;
       delete formData.title;
     }
 
-    // Add form data fields to FormData object
     Object.keys(formData).forEach(key => {
-      // Skip empty file fields during edit
-      if (isEditing && fileFieldsToSkip.includes(key)) {
-        console.log(`Skipping empty file field: ${key}`);
-        return;
-      }
-      
-      // Add field if it has a value
+      if (isEditing && fileFieldsToSkip.includes(key)) return;
       if (formData[key] !== null && formData[key] !== undefined) {
         data.append(key, formData[key]);
       }
     });
+  } else {
+    console.log('Using FormData instance directly, skipping conversion.');
+  }
 
-    try {
-      if (isEditing) { // Update
-        switch (activeTab) {
-          case 'media': await mediaService.updateMediaItem(currentItem._id, data); break;
-          case 'programs': await programService.updateProgram(currentItem._id, data); break;
-          case 'projects': await projectService.updateProject(currentItem._id, data); break;
-          case 'team': await teamService.updateTeamMember(currentItem._id, data); break;
-          case 'information': await informationService.updateInformationItem(currentItem._id, data); break;
-          default: throw new Error('Invalid content type for update');
-        }
-      } else { // Create
-        switch (activeTab) {
-          case 'media': await mediaService.createMediaItem(data); break;
-          case 'programs': await programService.createProgram(data); break;
-          case 'projects': await projectService.createProject(data); break;
-          case 'team': await teamService.createTeamMember(data); break;
-          case 'information': await informationService.createInformationItem(data); break;
-          default: throw new Error('Invalid content type for create');
-        }
+  try {
+    if (currentItem && currentItem._id) {
+      switch (activeTab) {
+        case 'media': await mediaService.updateMediaItem(currentItem._id, data); break;
+        case 'programs': await programService.updateProgram(currentItem._id, data); break;
+        case 'projects': await projectService.updateProject(currentItem._id, data); break;
+        case 'team': await teamService.updateTeamMember(currentItem._id, data); break;
+        case 'information': await informationService.updateInformationItem(currentItem._id, data); break;
+        default: throw new Error('Invalid content type for update');
       }
-      handleCloseModal();
-      fetchData();
-    } catch (err) {
-      console.error('Form submission error:', err);
-      setError(err.response?.data?.message || 'An error occurred during submission.');
-    } finally {
-      setLoading(false);
+    } else {
+      switch (activeTab) {
+        case 'media': await mediaService.createMediaItem(data); break;
+        case 'programs': await programService.createProgram(data); break;
+        case 'projects': await projectService.createProject(data); break;
+        case 'team': await teamService.createTeamMember(data); break;
+        case 'information': await informationService.createInformationItem(data); break;
+        default: throw new Error('Invalid content type for create');
+      }
     }
-  };
+
+    handleCloseModal();
+    fetchData();
+  } catch (err) {
+    console.error('Form submission error:', err);
+    setError(err.response?.data?.message || 'An error occurred during submission.');
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   const getFormConfig = (contentType) => {
     // Determine if we're editing or creating new 
