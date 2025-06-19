@@ -49,7 +49,7 @@ const OurVisionMissionPage = () => {
     <div className="min-h-screen bg-background pt-20">
       <div className="container-custom py-8">
         <Breadcrumb />
-        
+
         {/* Page Header */}
         <div className="text-center mb-12">
           <div className="inline-flex items-center justify-center w-16 h-16 bg-primary rounded-full mb-6">
@@ -65,6 +65,7 @@ const OurVisionMissionPage = () => {
 
         {/* Vision & Mission Cards */}
         <div className="grid md:grid-cols-2 gap-8 mb-16">
+          {/* Vision Card */}
           <div className="card-elevated">
             <div className="flex items-center mb-4">
               <div className="w-12 h-12 bg-primary rounded-lg flex items-center justify-center mr-4">
@@ -72,11 +73,16 @@ const OurVisionMissionPage = () => {
               </div>
               <h2 className="text-2xl font-heading font-semibold text-primary">Our Vision</h2>
             </div>
-            <p className="text-text-secondary leading-relaxed font-body">
-              To create a thriving agricultural ecosystem where every farmer has access to modern technology, fair markets, and sustainable practices that ensure food security and prosperity for rural communities across India.
-            </p>
+            <ul className="list-disc list-inside text-text-secondary leading-relaxed font-body space-y-2">
+              <li>To build a just, inclusive, and farmer-centric democracy.</li>
+              <li>To ensure that farmers are not just voters, but respected policymakers and economically empowered citizens.</li>
+              <li>To create a nation where every farmer enjoys dignity, income security, and access to quality education and healthcare.</li>
+              <li>To realign the democratic discourse around agrarian issues, social justice, and constitutional rights.</li>
+              <li>To establish a society where the backbone of the nation—the farmer—is recognized as a central force in India’s development.</li>
+            </ul>
           </div>
 
+          {/* Mission Card */}
           <div className="card-elevated">
             <div className="flex items-center mb-4">
               <div className="w-12 h-12 bg-secondary rounded-lg flex items-center justify-center mr-4">
@@ -84,14 +90,59 @@ const OurVisionMissionPage = () => {
               </div>
               <h2 className="text-2xl font-heading font-semibold text-primary">Our Mission</h2>
             </div>
-            <p className="text-text-secondary leading-relaxed font-body">
-              To empower farmers through education, advocacy, and collective action while promoting sustainable agricultural practices, ensuring fair pricing, and building strong rural communities that can adapt to changing global challenges.
-            </p>
+            <ul className="list-disc list-inside text-text-secondary leading-relaxed font-body space-y-2">
+              <li>Advocate for constitutional guarantees such as:
+                <ul className="list-disc ml-5 space-y-1">
+                  <li>Legal enforcement of Minimum Support Price (MSP).</li>
+                  <li>Formation of a National Farmers’ Commission with direct farmer representation.</li>
+                  <li>Protection of land rights and resistance to unjust acquisition.</li>
+                </ul>
+              </li>
+              <li>Promote equitable access to:
+                <ul className="list-disc ml-5 space-y-1">
+                  <li>Quality education free from privatization and inequality.</li>
+                  <li>Universal healthcare that is accessible to rural and underprivileged communities.</li>
+                </ul>
+              </li>
+              <li>Challenge political narratives based on religion or caste and redirect focus to:
+                <ul className="list-disc ml-5 space-y-1">
+                  <li>Income, public services, and social welfare.</li>
+                  <li>Transparency and accountability in government spending.</li>
+                </ul>
+              </li>
+              <li>Engage in:
+                <ul className="list-disc ml-5 space-y-1">
+                  <li>Policy research and solution-oriented activism.</li>
+                  <li>Grassroots mobilization and public awareness campaigns.</li>
+                  <li>Constructive dialogue with political parties, civil society, and media.</li>
+                </ul>
+              </li>
+              <li>Uphold the constitutional values of equality, liberty, and fraternity in all actions and campaigns.</li>
+            </ul>
+          </div>
+
+          {/* Political Mission Card */}
+          <div className="card-elevated md:col-span-2 max-w-4xl mx-auto">
+            <div className="flex items-center mb-4">
+              <div className="w-12 h-12 bg-accent rounded-lg flex items-center justify-center mr-4">
+                <Icon name="Users" size={24} color="white" />
+              </div>
+              <h2 className="text-2xl font-heading font-semibold text-primary">Our Political Mission</h2>
+            </div>
+            <ul className="list-disc list-inside text-text-secondary leading-relaxed font-body space-y-2">
+              <li>To reclaim political space for farmers and rural citizens by bringing agrarian issues to the forefront of national and state-level political discourse.</li>
+              <li>To challenge the dominance of communal, caste-based, and corporate-driven politics by promoting a value-based, development-oriented political alternative rooted in income, education, healthcare, and rural dignity.</li>
+              <li>To build a strong, farmer-led political platform that not only demands policy reforms but actively participates in elections at local, state, and national levels to influence governance from within.</li>
+              <li>To train and empower grassroots leadership from farming and rural communities, ensuring their representation in decision-making bodies and elected offices.</li>
+              <li>To expose misuse of public funds on political luxuries and demand accountability in governance, redirecting state resources toward public welfare schemes.</li>
+              <li>To engage in issue-based political alliances that uphold the principles of social justice, economic equality, and constitutional democracy, without being tied to any one party or ideology.</li>
+              <li>To foster a new political consciousness among citizens that prioritizes public interest over populism, and evaluates leaders on their commitment to farmer welfare, rural development, and transparent governance.</li>
+            </ul>
           </div>
         </div>
-
+        
         {/* Tab Navigation */}
-        <TabNavigation 
+        <TabNavigation
           tabs={tabs}
           activeTab={activeTab}
           onTabChange={setActiveTab}
@@ -112,12 +163,12 @@ const OurVisionMissionPage = () => {
               Be part of the change you want to see in agriculture. Together, we can build a stronger farming community.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <button 
+              <button
                 onClick={() => setShowMemberRegistration(true)}
                 className="bg-white text-primary px-6 py-3 rounded-md font-medium transition-all duration-200 hover:bg-gray-100 focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-primary">
                 Become a Member
               </button>
-              <button 
+              <button
                 onClick={() => setShowYouthProgram(true)}
                 className="border-2 border-white text-white px-6 py-3 rounded-md font-medium transition-all duration-200 hover:bg-white hover:text-primary focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-primary">
                 Youth Leadership Program
@@ -128,7 +179,7 @@ const OurVisionMissionPage = () => {
       </div>
 
       {/* Content Modal */}
-      <ContentModal 
+      <ContentModal
         isOpen={isModalOpen}
         onClose={closeModal}
         content={modalContent}

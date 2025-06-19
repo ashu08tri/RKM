@@ -8,12 +8,12 @@ const ContentModal = ({ isOpen, onClose, content }) => {
   if (!content) return null;
   
   // Log the entire content object when modal opens to debug gallery property
-  useEffect(() => {
-    if (isOpen && content) {
-      console.log('ContentModal content:', content);
-      console.log('ContentModal gallery:', content.gallery);
-    }
-  }, [isOpen, content]);
+  // useEffect(() => {
+  //   if (isOpen && content) {
+  //     console.log('ContentModal content:', content);
+  //     console.log('ContentModal gallery:', content.gallery);
+  //   }
+  // }, [isOpen, content]);
   
   // Increment view count when modal is opened (for videos only)
   useEffect(() => {
@@ -158,7 +158,7 @@ const ContentModal = ({ isOpen, onClose, content }) => {
       isOpen={isOpen} 
       onClose={onClose} 
       title={content.title || content.name}
-      size="2xl"
+      size="5xl"
     >
       <div className="max-h-96 overflow-y-auto">
         {/* Video Content */}
@@ -171,9 +171,9 @@ const ContentModal = ({ isOpen, onClose, content }) => {
               <Image 
                 src={content.thumbnailUrl || content.thumbnailPath || content.thumbnail || content.image || content.coverImage || content.filePath}
                 alt={content.title || content.name}
-                className="w-full h-64 object-cover"
+                className="w-full object-cover"
               />
-              {content.category && (
+              {/* {content.category && (
                 <div className="absolute top-4 left-4">
                   <span className="bg-primary text-white px-3 py-1 rounded-full text-sm font-medium">
                     {content.category}
@@ -186,7 +186,7 @@ const ContentModal = ({ isOpen, onClose, content }) => {
                     {content.status || content.type}
                   </span>
                 </div>
-              )}
+              )} */}
             </div>
           </div>
         )}
