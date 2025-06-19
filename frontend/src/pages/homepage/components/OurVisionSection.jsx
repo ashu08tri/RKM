@@ -635,7 +635,7 @@ const OurVisionSection = ({ language }) => {
                   padding-bottom: 40px;
                 }
                 .carousel-container .react-multi-carousel-item {
-                  height: 400px;
+                  height: 500px;
                   display: flex;
                 }
                 .carousel-container .react-multi-carousel-item > div {
@@ -643,6 +643,7 @@ const OurVisionSection = ({ language }) => {
                   height: 100%;
                   margin: 0 8px;
                   padding: 2px;
+                  overflow : hidden;
                 }
               `}</style>
             </div>
