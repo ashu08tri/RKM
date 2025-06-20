@@ -38,7 +38,7 @@ const TimelineManagement = () => {
         // If no recognizable data format, set empty array
         setTimelineEntries([]);
       }
-      
+
       setError(null);
     } catch (err) {
       console.error('Failed to fetch timeline entries:', err);
@@ -64,7 +64,8 @@ const TimelineManagement = () => {
       date: new Date().toISOString().split('T')[0],
       gallery: [],
       isKeyMilestone: false,
-      impact: ''
+      impact: '',
+      achievement: ''
     });
     setFormErrors({});
     setShowAddModal(true);
@@ -106,7 +107,7 @@ const TimelineManagement = () => {
       // FormData is already properly formatted by DynamicForm
       const result = await timelineService.createTimeline(formData);
       console.log('Timeline creation result:', result);
-      
+
       setShowAddModal(false);
       fetchTimelineEntries();
     } catch (err) {
@@ -172,6 +173,21 @@ const TimelineManagement = () => {
       label: 'Key Milestone',
       type: 'checkbox',
       description: 'Mark as a key milestone'
+    },
+    {
+      name: 'achievement',
+      label: 'Achievement',
+      type: 'select',
+      options: [
+        { value: 'Debt Relief Assistance', label: 'Debt Relief Assistance' },
+        { value: 'Organic Farming Training', label: 'Organic Farming Training' },
+        { value: 'Access to Agricultural Equipment', label: 'Access to Agricultural Equipment' },
+        { value: 'Farmer Market Linkage Programs', label: 'Farmer Market Linkage Programs' },
+        { value: 'Crop Insurance Enrollment Drive', label: 'Crop Insurance Enrollment Drive' },
+        { value: 'Children’s Education Support', label: 'Children’s Education Support' },
+        { value: 'Water Conservation & Irrigation Projects', label: 'Water Conservation & Irrigation Projects' },
+        { value: 'Rural Health Camps & Mental Health Support', label: 'Rural Health Camps & Mental Health Support' }
+      ]
     },
     {
       name: 'gallery',
@@ -243,6 +259,9 @@ const TimelineManagement = () => {
                   Key Milestone
                 </th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-text-secondary uppercase tracking-wider">
+                  Achievement
+                </th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-text-secondary uppercase tracking-wider">
                   Gallery
                 </th>
                 <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-text-secondary uppercase tracking-wider">
@@ -270,6 +289,9 @@ const TimelineManagement = () => {
                           No
                         </span>
                       )}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-text-primary max-w-xs truncate">
+                      {entry.achievement ? entry.achievement : "N/A"}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-text-primary">
                       {entry.gallery && entry.gallery.length > 0 ? (

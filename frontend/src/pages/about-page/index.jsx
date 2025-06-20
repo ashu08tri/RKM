@@ -197,8 +197,8 @@ const AboutPage = () => {
                   <Icon name="MapPin" size={20} className="text-primary mt-1" />
                   <div>
                     <p className="font-medium">Headquarters</p>
-                    <p className="text-text-secondary">1, पेपर मिल कॉलोनी, बाल्मिकी नगर, </p>
-                    <p className="text-text-secondary">लखनऊ, उत्तर प्रदेश, 226006</p>
+                    <p className="text-text-secondary">1, Paper Mill Colony, Valmiki Nagar, </p>
+                    <p className="text-text-secondary">Lucknow, Uttar Pradesh, 226006</p>
                   </div>
                 </div>
                 

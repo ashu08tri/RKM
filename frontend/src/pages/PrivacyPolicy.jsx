@@ -4,7 +4,7 @@ const PrivacyPolicy = () => {
   const currentDate = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
 
   return (
-    <div className="bg-surface py-12">
+    <div className="bg-surface pb-12 pt-24">
       <div className="container-custom">
         <div className="bg-white p-6 md:p-10 rounded-lg shadow-sm max-w-4xl mx-auto">
           <h1 className="text-3xl md:text-4xl font-heading font-bold text-text-primary mb-6">Privacy Policy</h1>

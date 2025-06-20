@@ -257,7 +257,7 @@ const RegistrationForm = ({ formData, errors, onComplete, setErrors, isLoading }
             <button type="button" className="text-primary hover:underline">
               Privacy Policy
             </button>{' '}
-            of the Youth Leadership Program
+            of the Rashtriya Kisan Manch
           </span>
         </label>
         {errors.termsAccepted && (
@@ -294,7 +294,7 @@ const RegistrationForm = ({ formData, errors, onComplete, setErrors, isLoading }
         <p className="text-sm text-text-secondary">
           Questions about the program? Contact us at{' '}
           <a href="tel:+911234567890" className="text-primary hover:underline">
-            +91 12345 67890
+            +917860411111
           </a>
         </p>
       </div>

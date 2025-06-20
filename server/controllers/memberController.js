@@ -29,6 +29,7 @@ const registerMember = asyncHandler(async (req, res) => {
     village, 
     city,
     phoneNumber, 
+    details,
     membershipType, 
     documentType, 
     age, 
@@ -79,6 +80,7 @@ const registerMember = asyncHandler(async (req, res) => {
     village,
     city,
     phoneNumber,
+    details,
     membershipType,
     documentPhoto: documentPhotoUrl,
     documentPublicId: documentPublicIdVal,
@@ -98,7 +100,7 @@ const registerMember = asyncHandler(async (req, res) => {
 
   const member = new Member(memberData);
   const createdMember = await member.save();
-  
+    
   res.status(201).json({
     message: 'Application submitted successfully. OTP verification pending.',
     member: createdMember
@@ -162,7 +164,7 @@ const getMemberApplicationById = asyncHandler(async (req, res) => {
 // @route   PUT /api/members/:id
 // @access  Private/Admin
 const updateMemberApplication = asyncHandler(async (req, res) => {
-  const { name, village, city, phoneNumber, membershipType, documentType, isOTPVerified, status, notes } = req.body;
+  const { name, village, city, phoneNumber, details, membershipType, documentType, isOTPVerified, status, notes } = req.body;
   const member = await Member.findById(req.params.id);
 
   if (!member) {
@@ -190,6 +192,7 @@ const updateMemberApplication = asyncHandler(async (req, res) => {
   member.village = village || member.village;
   member.city = city || member.city;
   member.phoneNumber = phoneNumber || member.phoneNumber;
+  member.details = details || member.details;
   member.membershipType = membershipType || member.membershipType;
   member.isOTPVerified = isOTPVerified !== undefined ? isOTPVerified : member.isOTPVerified;
   

@@ -12,11 +12,13 @@ import ProgressIndicator from './components/ProgressIndicator';
 
 const AndolanTimelinePage = () => {
   const [selectedYear, setSelectedYear] = useState(null);
+  const [selectedItem, setSelectedItem] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedDecade, setSelectedDecade] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [viewMode, setViewMode] = useState('timeline'); // 'timeline' or 'decade'
   const [timelineData, setTimelineData] = useState([]);
+  const [selectedAchievement, setSelectedAchievement] = useState('all');
   const [categories, setCategories] = useState([
     { value: 'all', label: 'All Categories', icon: 'Grid3X3' },
   ]);
@@ -30,20 +32,21 @@ const AndolanTimelinePage = () => {
       try {
         setIsLoading(true);
         const response = await getTimelines();
-        
+
         if (response && response.data && response.data.length > 0) {
           // Process and format the timeline data
           const processedData = response.data.map(item => ({
             year: new Date(item.date).getFullYear(),
-            date: new Date(item.date).toLocaleDateString('en-US', { 
-              day: 'numeric', 
-              month: 'long', 
-              year: 'numeric' 
+            date: new Date(item.date).toLocaleDateString('en-US', {
+              day: 'numeric',
+              month: 'long',
+              year: 'numeric'
             }),
             title: item.title,
             description: item.description,
             category: item.category || 'uncategorized',
             impact: item.impact || '',
+            achievement: item.achievement || '',
             // Map gallery items to just their file paths for the images array
             images: item.gallery && item.gallery.length > 0 ? item.gallery.map(img => img.filePath) : [],
             isKeyMilestone: item.isKeyMilestone || false,
@@ -53,7 +56,7 @@ const AndolanTimelinePage = () => {
           // Sort by year in ascending order
           const sortedData = processedData.sort((a, b) => a.year - b.year);
           setTimelineData(sortedData);
-          
+
           // Extract and set unique categories
           const uniqueCategories = ['all'];
           const categoryIcons = {
@@ -65,35 +68,35 @@ const AndolanTimelinePage = () => {
             'upcoming projects': 'Rocket',
             uncategorized: 'Tag'
           };
-          
+
           sortedData.forEach(item => {
             if (item.category && !uniqueCategories.includes(item.category)) {
               uniqueCategories.push(item.category);
             }
           });
-          
+
           const formattedCategories = uniqueCategories.map(category => ({
             value: category,
-            label: category === 'all' ? 'All Categories' : 
+            label: category === 'all' ? 'All Categories' :
               category.charAt(0).toUpperCase() + category.slice(1),
             icon: categoryIcons[category] || 'Tag'
           }));
-          
+
           setCategories(formattedCategories);
-          
+
           // Generate decades based on the years in the data
           const years = sortedData.map(item => item.year);
           const minYear = Math.min(...years);
           const maxYear = Math.max(...years);
           const minDecade = Math.floor(minYear / 10) * 10;
           const maxDecade = Math.floor(maxYear / 10) * 10;
-          
+
           const decadesList = [];
           for (let decade = minDecade; decade <= maxDecade; decade += 10) {
-            const decadeYears = years.filter(year => 
+            const decadeYears = years.filter(year =>
               year >= decade && year < decade + 10
             );
-            
+
             if (decadeYears.length > 0) {
               decadesList.push({
                 value: `${decade}s`,
@@ -102,14 +105,14 @@ const AndolanTimelinePage = () => {
               });
             }
           }
-          
+
           setDecades(decadesList);
-          
+
           // Set initial selections if data exists
           if (sortedData.length > 0) {
             setSelectedYear(sortedData[0].year);
           }
-          
+
         } else {
           setTimelineData([]);
         }
@@ -124,9 +127,12 @@ const AndolanTimelinePage = () => {
     fetchTimelineData();
   }, []);
 
-  const filteredData = timelineData.filter(item => 
-    selectedCategory === 'all' || item.category === selectedCategory
-  );
+  const filteredData = timelineData.filter(item => {
+    const matchesCategory = selectedCategory === 'all' || item.category === selectedCategory;
+    const matchesAchievement = selectedAchievement === 'all' || item.achievement === selectedAchievement;
+    return matchesCategory && matchesAchievement;
+  });
+
 
   const handleYearSelect = (year) => {
     setIsLoading(true);
@@ -148,7 +154,7 @@ const AndolanTimelinePage = () => {
         const nodeRect = node.getBoundingClientRect();
         const containerRect = timelineRef.current.getBoundingClientRect();
         const scrollLeft = nodeRect.left - containerRect.left - (containerRect.width / 2) + (nodeRect.width / 2);
-        
+
         timelineRef.current.scrollTo({
           left: timelineRef.current.scrollLeft + scrollLeft,
           behavior: 'smooth'
@@ -160,18 +166,18 @@ const AndolanTimelinePage = () => {
   const navigateTimeline = (direction) => {
     const currentIndex = filteredData.findIndex(item => item.year === selectedYear);
     if (currentIndex === -1) return;
-    
+
     let newIndex;
     if (direction === 'left') {
       newIndex = Math.max(0, currentIndex - 1);
     } else {
       newIndex = Math.min(filteredData.length - 1, currentIndex + 1);
     }
-    
+
     if (newIndex !== currentIndex) {
       const newYear = filteredData[newIndex].year;
       setSelectedYear(newYear);
-      
+
       // Scroll to the selected year in horizontal timeline
       const node = document.getElementById(`year-${newYear}`);
       if (node && timelineRef.current) {
@@ -234,7 +240,7 @@ const AndolanTimelinePage = () => {
             <p className="text-text-secondary">
               We encountered an error while loading the timeline. Please try again later.
             </p>
-            <button 
+            <button
               onClick={() => window.location.reload()}
               className="mt-4 bg-primary text-white px-4 py-2 rounded-md hover:bg-primary-dark"
             >
@@ -267,9 +273,9 @@ const AndolanTimelinePage = () => {
     <div className="min-h-screen bg-background pt-20">
       <div className="container-custom py-8">
         <Breadcrumb />
-        
+
         {/* Page Header */}
-        <motion.div 
+        <motion.div
           className="text-center mb-12"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -279,36 +285,38 @@ const AndolanTimelinePage = () => {
             Andolan Timeline
           </h1>
           <p className="text-lg text-text-secondary max-w-3xl mx-auto font-body">
-            Journey through two decades of agricultural transformation, farmer empowerment, 
+            Journey through two decades of agricultural transformation, farmer empowerment,
             and sustainable development initiatives that have shaped our movement.
           </p>
         </motion.div>
 
         {/* Filter Controls */}
-        <FilterControls 
+        <FilterControls
           categories={categories}
           selectedCategory={selectedCategory}
+          selectedAchievement={selectedAchievement}
           onCategoryChange={setSelectedCategory}
           decades={decades}
           selectedDecade={selectedDecade}
+          onAchievementChange={setSelectedAchievement}
           onDecadeChange={handleDecadeJump}
           viewMode={viewMode}
           onViewModeChange={setViewMode}
         />
-        
+
         {/* Progress Bar */}
-        <ProgressIndicator 
-          progress={getCurrentProgress()} 
+        <ProgressIndicator
+          progress={getCurrentProgress()}
           totalMilestones={timelineData.length}
           currentIndex={timelineData.findIndex(item => item.year === selectedYear) + 1}
         />
-        
+
         {/* Timeline View - Horizontal */}
         {viewMode === 'timeline' && (
           <div className="py-12 relative">
             {/* Navigation buttons - Timeline scroll */}
             <div className="absolute left-0 top-1/3 transform -translate-y-1/2 z-10">
-              <button 
+              <button
                 onClick={() => scrollTimeline('left')}
                 className="bg-surface p-3 rounded-full shadow-md hover:shadow-lg transition-all"
                 aria-label="Scroll timeline left"
@@ -317,7 +325,7 @@ const AndolanTimelinePage = () => {
               </button>
             </div>
             <div className="absolute right-0 top-1/3 transform -translate-y-1/2 z-10">
-              <button 
+              <button
                 onClick={() => scrollTimeline('right')}
                 className="bg-surface p-3 rounded-full shadow-md hover:shadow-lg transition-all"
                 aria-label="Scroll timeline right"
@@ -325,26 +333,26 @@ const AndolanTimelinePage = () => {
                 <Icon name="ChevronRight" size={24} />
               </button>
             </div>
-            
+
             {/* Horizontal Timeline */}
             <div className="relative mx-12 overflow-hidden">
               {/* Timeline Line */}
               <div className="absolute left-0 right-0 top-[40px] h-1 bg-accent"></div>
-              
+
               {/* Timeline Nodes */}
-              <div 
+              <div
                 ref={timelineRef}
                 className="flex space-x-16 px-8 overflow-x-auto scrollbar-hide py-4 scroll-smooth"
                 style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
               >
                 {filteredData.map((item, index) => (
-                  <div 
-                    key={`timeline-${item.year}-${index}`} 
+                  <div
+                    key={`timeline-${item.year}-${index}`}
                     id={`year-${item.year}`}
                     className="flex-shrink-0"
                   >
                     <div className="flex flex-col items-center">
-                      <TimelineNode 
+                      <TimelineNode
                         year={item.year}
                         isSelected={selectedYear === item.year}
                         isKeyMilestone={item.isKeyMilestone}
@@ -356,7 +364,7 @@ const AndolanTimelinePage = () => {
                 ))}
               </div>
             </div>
-            
+
             {/* Selected Milestone Card */}
             <AnimatePresence>
               {selectedYear && !isLoading && (
@@ -369,30 +377,30 @@ const AndolanTimelinePage = () => {
                 >
                   {/* Milestone Navigation Controls */}
                   <div className="absolute left-0 top-1/2 transform -translate-y-1/2 -ml-5 z-20">
-                    <button 
+                    <button
                       onClick={() => navigateTimeline('left')}
                       className="bg-surface p-3 rounded-full shadow-lg hover:bg-primary hover:text-white transition-all"
                       aria-label="Previous milestone"
                       disabled={filteredData.findIndex(item => item.year === selectedYear) === 0}
                     >
-                      <Icon 
-                        name="ArrowLeft" 
+                      <Icon
+                        name="ArrowLeft"
                         size={20}
-                        className={filteredData.findIndex(item => item.year === selectedYear) === 0 ? "opacity-50" : ""} 
+                        className={filteredData.findIndex(item => item.year === selectedYear) === 0 ? "opacity-50" : ""}
                       />
                     </button>
                   </div>
-                  
+
                   <div className="absolute right-0 top-1/2 transform -translate-y-1/2 -mr-5 z-20">
-                    <button 
+                    <button
                       onClick={() => navigateTimeline('right')}
                       className="bg-surface p-3 rounded-full shadow-lg hover:bg-primary hover:text-white transition-all"
                       aria-label="Next milestone"
                       disabled={filteredData.findIndex(item => item.year === selectedYear) === filteredData.length - 1}
                     >
-                      <Icon 
-                        name="ArrowRight" 
-                        size={20} 
+                      <Icon
+                        name="ArrowRight"
+                        size={20}
                         className={filteredData.findIndex(item => item.year === selectedYear) === filteredData.length - 1 ? "opacity-50" : ""}
                       />
                     </button>
@@ -401,9 +409,9 @@ const AndolanTimelinePage = () => {
                   {(() => {
                     const selectedItem = filteredData.find(item => item.year === selectedYear);
                     if (!selectedItem) return null;
-                    
+
                     return (
-                      <MilestoneCard 
+                      <MilestoneCard
                         title={selectedItem.title}
                         date={selectedItem.date}
                         description={selectedItem.description}
@@ -421,7 +429,7 @@ const AndolanTimelinePage = () => {
             </AnimatePresence>
           </div>
         )}
-        
+
         {/* Decade View */}
         {viewMode === 'decade' && (
           <div className="py-12">
@@ -430,12 +438,12 @@ const AndolanTimelinePage = () => {
                 <h2 className="text-3xl font-heading font-bold text-primary mb-8">
                   {decade.label}
                 </h2>
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {filteredData
                     .filter(item => decade.years.includes(item.year))
                     .map((item, index) => (
-                      <div 
+                      <div
                         key={`decade-${item.year}-${index}`}
                         className="bg-surface rounded-lg shadow-md p-6 transition-all duration-200 hover:shadow-lg"
                       >
@@ -451,20 +459,7 @@ const AndolanTimelinePage = () => {
                           {item.description}
                         </p>
                         <button
-                          onClick={() => {
-                            setViewMode('timeline');
-                            setSelectedYear(item.year);
-                            setTimeout(() => {
-                              const node = document.getElementById(`year-${item.year}`);
-                              if (node && timelineRef.current) {
-                                node.scrollIntoView({
-                                  behavior: 'smooth',
-                                  block: 'nearest',
-                                  inline: 'center'
-                                });
-                              }
-                            }, 100);
-                          }}
+                          onClick={() => setSelectedItem(item)}
                           className="text-primary hover:text-secondary transition-smooth flex items-center space-x-2"
                         >
                           <span>Read More</span>
@@ -477,7 +472,7 @@ const AndolanTimelinePage = () => {
             ))}
           </div>
         )}
-        
+
         {/* CSS for hiding scrollbars */}
         <style jsx>{`
           /* Hide scrollbar for Chrome, Safari and Opera */
@@ -486,6 +481,64 @@ const AndolanTimelinePage = () => {
           }
         `}</style>
       </div>
+      {selectedItem && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm bg-black/70 px-4 pb-2 pt-36">
+          <div className="bg-white border-4 border-green-600 rounded-2xl shadow-2xl max-w-3xl w-full relative overflow-hidden max-h-[90vh] overflow-y-auto">
+
+            {/* Close Button */}
+            <button
+              className="absolute top-3 right-3 text-gray-600 hover:text-red-500 bg-white bg-opacity-70 p-1 rounded-full shadow-md"
+              onClick={() => setSelectedItem(null)}
+            >
+              <Icon name="X" size={20} />
+            </button>
+
+            {/* Top Image Full Width */}
+            {selectedItem.images && selectedItem.images.length > 0 && (
+              <img
+                src={selectedItem.images[0]}
+                alt="Main Visual"
+                className="w-full object-cover rounded-t-md"
+              />
+            )}
+
+            {/* Content */}
+            <div className="p-6 space-y-4">
+              <h2 className="text-3xl font-bold text-green-700">{selectedItem.title}</h2>
+              <p className="text-sm text-gray-500 italic">{selectedItem.date}</p>
+              <p className="text-gray-700 leading-relaxed text-md whitespace-pre-line">{selectedItem.description}</p>
+
+              {selectedItem.achievement && (
+                <div className="bg-green-50 border-l-4 border-green-500 p-4 rounded-md">
+                  <h3 className="text-lg font-semibold text-green-700 mb-1">Achievement</h3>
+                  <p className="text-gray-800">{selectedItem.achievement}</p>
+                </div>
+              )}
+
+              {selectedItem.impact && (
+                <div className="bg-emerald-50 border-l-4 border-emerald-500 p-4 rounded-md">
+                  <h3 className="text-lg font-semibold text-emerald-700 mb-1">Impact</h3>
+                  <p className="text-gray-800">{selectedItem.impact}</p>
+                </div>
+              )}
+
+              {/* Gallery Images (excluding first one if already shown above) */}
+              {selectedItem.images && selectedItem.images.length > 1 && (
+                <div className="grid grid-cols-2 gap-4 mt-4">
+                  {selectedItem.images.slice(1).map((img, idx) => (
+                    <img
+                      key={idx}
+                      src={img}
+                      alt={`Gallery image ${idx + 2}`}
+                      className="rounded-lg object-contain w-full h-40 border border-gray-200"
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -185,12 +185,13 @@ const generateApplicationReceipt = asyncHandler(async (req, res) => {
        .fillColor('#444')
        .text('For any queries related to your application, please contact:')
        .moveDown(0.2)
-       .text('Phone: +91 12345 67890')
+       .text('Phone: +917860411111')
        .moveDown(0.2)
        .text('Email: support@rashtriyakishanmanch.org')
        .moveDown(0.2)
        .text('Website: www.rashtriyakishanmanch.org')
-       .moveDown(2);
+       .moveDown(2)
+       .text('Address: 1, Paper Mill Colony, Valmiki Nagar, Lucknow, Uttar Pradesh, 226006');
 
     // Footer
     doc.fontSize(10)

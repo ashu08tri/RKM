@@ -28,6 +28,11 @@ const timelineSchema = new mongoose.Schema({
     type: String,
     trim: true
   },
+  achievement: {
+    type: String,
+    enum: ["Debt Relief Assistance","Organic Farming Training","Access to Agricultural Equipment","Farmer Market Linkage Programs","Crop Insurance Enrollment Drive"," Children’s Education Support","Water Conservation & Irrigation Projects", "Rural Health Camps & Mental Health Support"],
+    default: ""
+  },
   createdAt: {
     type: Date,
     default: Date.now

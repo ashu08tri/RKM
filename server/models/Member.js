@@ -19,6 +19,7 @@ const memberSchema = new mongoose.Schema({
     unique: true, // Assuming phone numbers should be unique
     // Add validation for phone number format if needed
   },
+  details: String,
   isOTPVerified: {
     type: Boolean,
     default: false

@@ -8,7 +8,7 @@ const { cloudinary } = require('../config/cloudinaryConfig');
 const getTimelines = asyncHandler(async (req, res) => {
   try {
     const query = {};
-    
+
     // Filter by isKeyMilestone if requested
     if (req.query.isKeyMilestone) {
       query.isKeyMilestone = req.query.isKeyMilestone === 'true';
@@ -16,7 +16,7 @@ const getTimelines = asyncHandler(async (req, res) => {
 
     // Sort by date in descending order (newest first)
     const timelines = await Timeline.find(query).sort({ date: -1 });
-    
+
     res.status(200).json({
       success: true,
       count: timelines.length,
@@ -36,12 +36,12 @@ const getTimelines = asyncHandler(async (req, res) => {
 // @access  Public
 const getTimelineById = asyncHandler(async (req, res) => {
   const timeline = await Timeline.findById(req.params.id);
-  
+
   if (!timeline) {
     res.status(404);
     throw new Error('Timeline entry not found');
   }
-  
+
   res.status(200).json({
     success: true,
     data: timeline
@@ -53,8 +53,8 @@ const getTimelineById = asyncHandler(async (req, res) => {
 // @access  Private/Admin
 const createTimeline = asyncHandler(async (req, res) => {
   try {
-    const { title, description, date, isKeyMilestone, impact } = req.body;
-    
+    const { title, description, date, isKeyMilestone, impact, achievement } = req.body;
+
     if (!title || !description || !date) {
       return res.status(400).json({
         success: false,
@@ -67,21 +67,21 @@ const createTimeline = asyncHandler(async (req, res) => {
     if (req.files && req.files.gallery) {
       // Convert to array if it's a single file
       const galleryFiles = Array.isArray(req.files.gallery) ? req.files.gallery : [req.files.gallery];
-      
+
       // Process each file and add to gallery array
       gallery = galleryFiles.map(file => ({
         filePath: file.path,
         publicId: file.filename,
         fileType: file.mimetype
       }));
-      
+
       console.log(`Processed ${gallery.length} gallery files for timeline`);
     } else if (req.body.galleryData) {
       // If gallery data is provided in JSON string
       try {
         gallery = JSON.parse(req.body.galleryData);
         console.log(`Using ${gallery.length} existing gallery URLs from galleryData`);
-        
+
         // Ensure each gallery item is correctly formatted as an object with required fields
         gallery = gallery.map(item => {
           // If the item is already correctly formatted, return it as is
@@ -102,7 +102,7 @@ const createTimeline = asyncHandler(async (req, res) => {
         console.error('Error parsing galleryData:', e);
       }
     }
-    
+
     // Upload any base64 encoded images to Cloudinary
     if (gallery.length > 0) {
       for (let i = 0; i < gallery.length; i++) {
@@ -112,7 +112,7 @@ const createTimeline = asyncHandler(async (req, res) => {
               folder: 'rashtriya_kishan_manch/timeline',
               resource_type: 'image'
             });
-            
+
             gallery[i] = {
               filePath: result.secure_url,
               publicId: result.public_id,
@@ -125,7 +125,7 @@ const createTimeline = asyncHandler(async (req, res) => {
         }
       }
     }
-    
+
     // Create the timeline entry
     const timeline = await Timeline.create({
       title,
@@ -133,9 +133,10 @@ const createTimeline = asyncHandler(async (req, res) => {
       date,
       gallery,
       isKeyMilestone: isKeyMilestone === 'true' || isKeyMilestone === true,
-      impact: impact || ''
+      impact: impact || '',
+      achievement: achievement || ''
     });
-    
+
     res.status(201).json({
       success: true,
       data: timeline
@@ -155,34 +156,43 @@ const createTimeline = asyncHandler(async (req, res) => {
 const updateTimeline = asyncHandler(async (req, res) => {
   try {
     let timeline = await Timeline.findById(req.params.id);
-    
+
     if (!timeline) {
       res.status(404);
       throw new Error('Timeline entry not found');
     }
-    
-    const { title, description, date, isKeyMilestone, impact } = req.body;
-    let updatedData = { title, description, date, isKeyMilestone, impact };
-    
+
+    let { title, description, date, isKeyMilestone, impact, achievement } = req.body;
+
+    // Normalize isKeyMilestone to a proper Boolean
+    if (typeof isKeyMilestone === 'string') {
+      if (isKeyMilestone.toLowerCase() === 'true') isKeyMilestone = true;
+      else if (isKeyMilestone.toLowerCase() === 'false') isKeyMilestone = false;
+      else isKeyMilestone = false; // or: delete isKeyMilestone;
+    }
+
+    let updatedData = { title, description, date, isKeyMilestone, impact, achievement };
+
+
     // Handle image uploads if files are provided
     if (req.files && req.files.gallery) {
       // Convert to array if it's a single file
       const galleryFiles = Array.isArray(req.files.gallery) ? req.files.gallery : [req.files.gallery];
-      
+
       // Process each file and add to gallery array
       updatedData.gallery = galleryFiles.map(file => ({
         filePath: file.path,
         publicId: file.filename,
         fileType: file.mimetype
       }));
-      
+
       console.log(`Processed ${updatedData.gallery.length} gallery files for timeline update`);
     } else if (req.body.galleryData) {
       // If gallery data is provided in JSON string
       try {
         let galleryData = JSON.parse(req.body.galleryData);
         console.log(`Using ${galleryData.length} existing gallery URLs for timeline update`);
-        
+
         // Ensure each gallery item is correctly formatted as an object with required fields
         updatedData.gallery = galleryData.map(item => {
           // If the item is already correctly formatted, return it as is
@@ -203,7 +213,7 @@ const updateTimeline = asyncHandler(async (req, res) => {
         console.error('Error parsing galleryData for update:', e);
       }
     }
-    
+
     // Upload any base64 encoded images to Cloudinary
     if (updatedData.gallery && updatedData.gallery.length > 0) {
       for (let i = 0; i < updatedData.gallery.length; i++) {
@@ -213,7 +223,7 @@ const updateTimeline = asyncHandler(async (req, res) => {
               folder: 'rashtriya_kishan_manch/timeline',
               resource_type: 'image'
             });
-            
+
             updatedData.gallery[i] = {
               filePath: result.secure_url,
               publicId: result.public_id,
@@ -226,13 +236,13 @@ const updateTimeline = asyncHandler(async (req, res) => {
         }
       }
     }
-    
+
     timeline = await Timeline.findByIdAndUpdate(
       req.params.id,
       updatedData,
       { new: true, runValidators: true }
     );
-    
+
     res.status(200).json({
       success: true,
       data: timeline
@@ -251,12 +261,12 @@ const updateTimeline = asyncHandler(async (req, res) => {
 // @access  Private/Admin
 const deleteTimeline = asyncHandler(async (req, res) => {
   const timeline = await Timeline.findById(req.params.id);
-  
+
   if (!timeline) {
     res.status(404);
     throw new Error('Timeline entry not found');
   }
-  
+
   // Delete images from Cloudinary if they exist
   if (timeline.gallery && timeline.gallery.length > 0) {
     for (const image of timeline.gallery) {
@@ -270,9 +280,9 @@ const deleteTimeline = asyncHandler(async (req, res) => {
       }
     }
   }
-  
+
   await timeline.deleteOne();
-  
+
   res.status(200).json({
     success: true,
     data: {}

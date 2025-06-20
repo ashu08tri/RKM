@@ -17,6 +17,7 @@ const memberService = {
       formData.append('village', memberData.village);
       formData.append('city', memberData.city);
       formData.append('phoneNumber', memberData.phoneNumber);
+      formData.append('details', memberData.details);
       formData.append('membershipType', 'General Member');
 
       // If document is provided, append it
@@ -58,6 +59,7 @@ const memberService = {
               village: memberData.village,
               city: memberData.city,
               phoneNumber: memberData.phoneNumber,
+              details: memberData.details,
               membershipType: 'General Member',
               documentType: memberData.documentType || 'Not Provided',
               status: 'Pending',

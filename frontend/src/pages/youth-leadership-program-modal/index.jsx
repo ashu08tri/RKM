@@ -134,7 +134,7 @@ const YouthLeadershipProgramModal = ({ onClose }) => {
               <Icon name="GraduationCap" size={32} color="white" />
             </div>
             <h1 className="text-2xl font-heading font-bold text-primary mb-2">
-              Kishan Leadership Program
+              Kisan Leadership Program
             </h1>
             <p className="text-text-secondary font-body">
               Join our next generation of agricultural leaders

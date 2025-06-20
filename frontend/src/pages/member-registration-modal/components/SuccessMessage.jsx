@@ -70,7 +70,7 @@ const SuccessMessage = ({ memberData, onClose }) => {
 
   const handleJoinWhatsApp = () => {
     // Open WhatsApp with a predefined message
-    window.open('https://wa.me/+911234567890?text=Hello, I just registered as a member with ID: ' + applicationId, '_blank');
+    window.open('https://wa.me/+917860411111?text=Hello, I just registered as a member with ID: ' + applicationId, '_blank');
   };
 
   return (

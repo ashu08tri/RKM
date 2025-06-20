@@ -7,7 +7,8 @@ const RegistrationForm = ({ formData, errors, onComplete, setErrors, isLoading }
     village: formData.village || '',
     city: formData.city || '',
     phoneNumber: formData.phoneNumber || '',
-    termsAccepted: formData.termsAccepted || false
+    termsAccepted: formData.termsAccepted || false,
+    details: formData.details || ""
   });  
 
   const validateForm = () => {
@@ -155,6 +156,30 @@ const RegistrationForm = ({ formData, errors, onComplete, setErrors, isLoading }
         )}
       </div>
 
+      {/* Details Field */}
+      <div>
+        <label className="form-label">
+          Problem Details *
+        </label>
+        <div className="relative">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+          </div>
+          <textarea
+            value={localData.details}
+            onChange={(e) => handleInputChange('details', e.target.value)}
+            className={`form-input pl-12 ${errors.details ? 'border-error focus:border-error focus:ring-error' : ''}`}
+            placeholder="Describe your problem"
+            disabled={isLoading}
+          />
+        </div>
+        {errors.details && (
+          <p className="mt-1 text-sm text-error flex items-center">
+            <Icon name="AlertCircle" size={14} className="mr-1" />
+            {errors.details}
+          </p>
+        )}
+      </div>
+
       {/* Terms and Conditions */}
       <div>
         <label className="flex items-start space-x-3 cursor-pointer">
@@ -174,7 +199,7 @@ const RegistrationForm = ({ formData, errors, onComplete, setErrors, isLoading }
             <button type="button" className="text-primary hover:underline">
               Privacy Policy
             </button>{' '}
-            of Kisan Andolan Portal
+            of Rashtriya Kisan Manch
           </span>
         </label>
         {errors.termsAccepted && (
@@ -211,7 +236,7 @@ const RegistrationForm = ({ formData, errors, onComplete, setErrors, isLoading }
         <p className="text-sm text-text-secondary">
           Need help? Contact us at{' '}
           <a href="tel:+911234567890" className="text-primary hover:underline">
-            +91 12345 67890
+            +917860411111
           </a>
         </p>
       </div>

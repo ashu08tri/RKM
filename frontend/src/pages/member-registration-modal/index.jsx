@@ -15,6 +15,7 @@ const MemberRegistrationModal = ({ onClose }) => {
     name: '',
     village: '',
     phoneNumber: '',
+    details: '',
     documentPhoto: null,
     documentType: 'Not Provided',
     termsAccepted: false

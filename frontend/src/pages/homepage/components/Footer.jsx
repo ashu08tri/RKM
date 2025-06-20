@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import axios from "axios";
 import Icon from 'components/AppIcon';
 import logo from '/assets/images/logo.webp';
@@ -8,8 +8,13 @@ const Footer = ({ language }) => {
   const [amount, setAmount] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [paymentResponse, setPaymentResponse] = useState(null);
+  const navigate = useNavigate();
 
   const currentYear = new Date().getFullYear();
+
+  const handleYouthLeadership = () => {
+    navigate('/youth-leadership-program-modal');
+  };
 
   const loadRazorpay = (src) => {
     return new Promise((resolve) => {
@@ -69,7 +74,8 @@ const Footer = ({ language }) => {
         links: [
           { label: "Contact Us", href: "/about-page#contact" },
           { label: "FAQs", href: "/faqs" },
-          { label: "Community Guidelines", href: "/guidelines" }
+          { label: "Community Guidelines", href: "/guidelines" },
+          { label: "Kisan Support", href: "/kisan-support" }
         ]
       },
       legal: {
@@ -84,9 +90,10 @@ const Footer = ({ language }) => {
       additional: {
         title: "Quick Links",
         links: [
-          { label: "About Us", href: "/team-leadership-page" },
+          { label: "About Us", href: "/about-page#contact" },
           { label: "Our Programs", href: "/our-vision-mission-page" },
-          { label: "Timeline", href: "/andolan-timeline-page" }
+          { label: "Timeline", href: "/andolan-timeline-page" },
+          { label: "Kisan Leadership Program", href: "/youth-leadership-program-modal" }
         ]
       },
       newsletter: {
@@ -105,10 +112,9 @@ const Footer = ({ language }) => {
       helpCenter: {
         title: "सहायता केंद्र",
         links: [
-          { label: "संपर्क करें", href: "/contact" },
+          { label: "संपर्क करें", href: "/about-page#contact" },
           { label: "अक्सर पूछे जाने वाले प्रश्न", href: "/faqs" },
-          { label: "सहायता", href: "/support" },
-          { label: "प्रशिक्षण संसाधन", href: "/resources" },
+          { label: "किसान सहायता", href: "/kisan-support" },
           { label: "समुदायिक दिशानिर्देश", href: "/guidelines" }
         ]
       },
