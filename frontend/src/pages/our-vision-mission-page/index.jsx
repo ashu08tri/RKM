@@ -19,7 +19,7 @@ const OurVisionMissionPage = () => {
   const tabs = [
     { id: 'media', label: 'Media', icon: 'Camera' },
     { id: 'programs', label: 'Programs', icon: 'Target' },
-    { id: 'upcoming', label: 'Upcoming Projects', icon: 'Calendar' }
+    { id: 'upcoming', label: 'Projects', icon: 'Calendar' }
   ];
 
   const handleCardClick = (content) => {

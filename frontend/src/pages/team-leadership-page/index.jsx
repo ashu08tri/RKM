@@ -21,7 +21,7 @@ const TeamLeadershipPage = () => {
     const fetchTeamMembers = async () => {
       try {
         setLoading(true);
-        const response = await api.get('/team');
+        const response = await api.get('/api/team');
         setTeamMembers(response.data);
         setError(null);
       } catch (err) {

@@ -15,7 +15,7 @@ router
   .post(protect, admin, uploadSingle('image'), createInformationItem);
 
 router
-  .route('/:id')
+  .route('/:groupTitle/:id')
   .put(protect, admin, uploadSingle('image'), updateInformationItem)
   .delete(protect, admin, deleteInformationItem);
 

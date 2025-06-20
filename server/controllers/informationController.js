@@ -1,97 +1,141 @@
-const Information = require('../models/Information');
+const InformationGroup = require('../models/Information'); // updated model
 const cloudinary = require('../config/cloudinaryConfig');
 
-// @desc    Get all information items
+// @desc    Get all information groups
 // @route   GET /api/information
 // @access  Public
 exports.getInformationItems = async (req, res) => {
   try {
-    const items = await Information.find().sort({ createdAt: -1 });
-    res.status(200).json({ success: true, data: items });
+    const groups = await InformationGroup.find().sort({ createdAt: -1 });
+    res.status(200).json({ success: true, data: groups });
   } catch (error) {
     res.status(500).json({ success: false, error: 'Server Error' });
   }
 };
 
-// @desc    Create an information item
-// @route   POST /api/information
+// @desc    Create an item inside a group
+// @route   POST /api/information/:groupTitle
 // @access  Private/Admin
 exports.createInformationItem = async (req, res) => {
   try {
-    const { title, content, status, category } = req.body;
-    let imageUrl, imagePublicId;
+    const {
+      groupTitle,
+      title,
+      description,
+      category,
+      region,
+      engagementMetric,
+      fileType,
+    } = req.body;
+
+    let image = null;
 
     if (req.file) {
-      imageUrl = req.file.path;
-      imagePublicId = req.file.filename;
+      image = req.file.path;
     }
 
-    const item = await Information.create({
-      title,
-      content,
-      status,
-      category,
-      imageUrl,
-      imagePublicId,
-    });
+    let group = await InformationGroup.findOne({ groupTitle });
 
-    res.status(201).json({ success: true, data: item });
+    const newItem = {
+      title,
+      description,
+      category,
+      region,
+      image,
+      engagementMetric,
+      fileType,
+    };
+
+    if (!group) {
+      // create the group if it doesn't exist
+      group = await InformationGroup.create({
+        groupTitle,
+        items: [newItem],
+      });
+    } else {
+      // push to existing group's items
+      group.items.push(newItem);
+      await group.save();
+    }
+
+    res.status(201).json({ success: true, data: group });
   } catch (error) {
     res.status(400).json({ success: false, error: error.message });
   }
 };
 
-// @desc    Update an information item
-// @route   PUT /api/information/:id
+// @desc    Update an item inside a group
+// @route   PUT /api/information/:groupTitle/:itemId
 // @access  Private/Admin
 exports.updateInformationItem = async (req, res) => {
   try {
-    let item = await Information.findById(req.params.id);
+    const { groupTitle, id: itemId } = req.params;
+    const updatedFields = req.body;
 
-    if (!item) {
-      return res.status(404).json({ success: false, error: 'Item not found' });
+    const group = await InformationGroup.findOne({ groupTitle });
+    if (!group) {
+      return res.status(404).json({ success: false, error: 'Group not found' });
     }
 
-    const updatedData = { ...req.body };
+    const itemIndex = group.items.findIndex(
+      (item) => item._id.toString() === itemId
+    );
+
+    if (itemIndex === -1) {
+      return res.status(404).json({ success: false, error: 'Item not found in group' });
+    }
 
     if (req.file) {
-      if (item.imagePublicId) {
-        await cloudinary.uploader.destroy(item.imagePublicId);
-      }
-      updatedData.imageUrl = req.file.path;
-      updatedData.imagePublicId = req.file.filename;
+      updatedFields.image = req.file.path;
     }
 
-    item = await Information.findByIdAndUpdate(req.params.id, updatedData, {
-      new: true,
-      runValidators: true,
-    });
+    group.items[itemIndex] = {
+      ...group.items[itemIndex]._doc,
+      ...updatedFields,
+    };
 
-    res.status(200).json({ success: true, data: item });
+    await group.save();
+    res.status(200).json({ success: true, data: group.items[itemIndex] });
   } catch (error) {
     res.status(400).json({ success: false, error: error.message });
   }
 };
 
-// @desc    Delete an information item
-// @route   DELETE /api/information/:id
+// @desc    Delete an item inside a group
+// @route   DELETE /api/information/:groupTitle/:itemId
 // @access  Private/Admin
+// DELETE /api/information/:groupTitle/:itemId
 exports.deleteInformationItem = async (req, res) => {
   try {
-    const item = await Information.findById(req.params.id);
+    const { groupTitle, id:itemId } = req.params;
 
+    const group = await InformationGroup.findOne({ groupTitle });
+    if (!group) {
+      return res.status(404).json({ success: false, error: 'Group not found' });
+    }
+
+    console.log('Requested itemId:', itemId);
+    console.log('All item._id in group:', group.items.map(i => i._id.toString()));
+
+
+    const item = group.items.id(itemId);
     if (!item) {
-      return res.status(404).json({ success: false, error: 'Item not found' });
+      return res.status(404).json({ success: false, error: 'Item not found in group' });
     }
 
-    if (item.imagePublicId) {
-      await cloudinary.uploader.destroy(item.imagePublicId);
-    }
+    // delete image from Cloudinary
+    // if (group.items[itemIndex].imagePublicId) {
+    //   await cloudinary.uploader.destroy(group.items[itemIndex].imagePublicId);
+    // }
 
-    await item.deleteOne();
+    item.deleteOne(); // removes the subdocument
+    await group.save();
 
     res.status(200).json({ success: true, data: {} });
   } catch (error) {
+    console.error(error);
     res.status(500).json({ success: false, error: 'Server Error' });
   }
 };
+
+

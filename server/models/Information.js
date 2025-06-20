@@ -1,33 +1,49 @@
 const mongoose = require('mongoose');
 
-const InformationSchema = new mongoose.Schema({
+const ItemSchema = new mongoose.Schema({
   title: {
     type: String,
-    required: [true, 'Title is required.'],
-    trim: true,
+    required: true,
   },
-  content: {
+  description: {
     type: String,
-    required: [true, 'Content is required.'],
-  },
-  imageUrl: {
-    type: String,
-    required: false, 
-  },
-  imagePublicId: {
-    type: String,
-    required: false,
-  },
-  status: {
-    type: String,
-    enum: ['draft', 'published'],
-    default: 'draft',
+    required: true,
   },
   category: {
     type: String,
-    enum: ['Article', 'Announcement', 'News'],
-    default: 'Article',
-  }
+    enum: ['subsidy', 'certification', 'insurance', 'seasonal', 'sustainable', 'weather'],
+    default: 'subsidy',
+  },
+  uploadDate: {
+    type: Date,
+    default: Date.now
+  },
+  region: {
+    type: String,
+    default: 'national',
+  },
+  image: {
+    type: String,
+  },
+  engagementMetric: {
+    type: Number,
+    default: 0,
+  },
+  fileType: {
+    type: String,
+    enum: ['document', 'image', 'video'],
+    default: 'document',
+  },
+});
+
+const InformationGroupSchema = new mongoose.Schema({
+  groupTitle: {
+    type: String,
+    enum: ['governmentSchemes', 'agriculturalResources', 'educationalMaterials', 'newsUpdates'],
+    required: true,
+    unique: true,
+  },
+  items: [ItemSchema],
 }, { timestamps: true });
 
-module.exports = mongoose.model('Information', InformationSchema);
+module.exports = mongoose.model('InformationGroup', InformationGroupSchema);

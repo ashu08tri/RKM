@@ -77,7 +77,7 @@ const OurVisionSection = ({ language }) => {
       tabs: {
         media: "Media",
         programs: "Programs", 
-        projects: "Upcoming Projects"
+        projects: "Projects"
       },
       tabContent: {
         media: {
@@ -87,7 +87,7 @@ const OurVisionSection = ({ language }) => {
           title: "Current Programs"
         },
         projects: {
-          title: "Upcoming Projects"
+          title: "Projects"
         }
       },
       loadingText: "Loading content...",
@@ -100,7 +100,7 @@ const OurVisionSection = ({ language }) => {
       tabs: {
         media: "मीडिया",
         programs: "कार्यक्रम",
-        projects: "आगामी परियोजनाएं"
+        projects: "परियोजनाएं"
       },
       tabContent: {
         media: {
@@ -110,7 +110,7 @@ const OurVisionSection = ({ language }) => {
           title: "वर्तमान कार्यक्रम"
         },
         projects: {
-          title: "आगामी परियोजनाएं"
+          title: "परियोजनाएं"
         }
       },
       loadingText: "सामग्री लोड हो रही है...",

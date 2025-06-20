@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import Modal from 'components/ui/Modal';
 import Icon from 'components/AppIcon';
 import Image from 'components/AppImage';
@@ -6,7 +6,66 @@ import axios from 'axios';
 
 const ContentModal = ({ isOpen, onClose, content }) => {
   if (!content) return null;
-  
+  const [isGalleryOpen, setIsGalleryOpen] = useState(false);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [galleryImages, setGalleryImages] = useState([]);
+  const [touchStartX, setTouchStartX] = useState(0);
+  const [touchEndX, setTouchEndX] = useState(0);
+
+
+  const openGallery = (images, index) => {
+    const normalized = images.map(img =>
+      typeof img === 'string'
+        ? img
+        : img?.url || `/uploads/${img?.publicId || ''}`
+    );
+
+    setGalleryImages(normalized);
+    setCurrentIndex(index);
+    setIsGalleryOpen(true);
+  };
+
+  const handleTouchStart = (e) => {
+    setTouchStartX(e.changedTouches[0].clientX);
+  };
+
+  const handleTouchEnd = (e) => {
+    setTouchEndX(e.changedTouches[0].clientX);
+    handleSwipe();
+  };
+
+  const handleSwipe = () => {
+    const distance = touchStartX - touchEndX;
+    const minSwipeDistance = 50;
+
+    if (distance > minSwipeDistance) {
+      // Swiped left 
+      setCurrentIndex((prev) => (prev < galleryImages.length - 1 ? prev + 1 : 0));
+    } else if (distance < -minSwipeDistance) {
+      // Swiped right
+      setCurrentIndex((prev) => (prev > 0 ? prev - 1 : galleryImages.length - 1));
+    }
+  };
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (!isGalleryOpen) return;
+
+      if (e.key === 'ArrowLeft') {
+        setCurrentIndex((prev) => (prev > 0 ? prev - 1 : galleryImages.length - 1));
+      } else if (e.key === 'ArrowRight') {
+        setCurrentIndex((prev) => (prev < galleryImages.length - 1 ? prev + 1 : 0));
+      } else if (e.key === 'Escape') {
+        setIsGalleryOpen(false);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isGalleryOpen, galleryImages.length]);
+
+
+
   // Log the entire content object when modal opens to debug gallery property
   // useEffect(() => {
   //   if (isOpen && content) {
@@ -14,7 +73,7 @@ const ContentModal = ({ isOpen, onClose, content }) => {
   //     console.log('ContentModal gallery:', content.gallery);
   //   }
   // }, [isOpen, content]);
-  
+
   // Increment view count when modal is opened (for videos only)
   useEffect(() => {
     if (isOpen && content._id && content.fileType === 'video') {
@@ -26,7 +85,7 @@ const ContentModal = ({ isOpen, onClose, content }) => {
           console.error('Error updating view count:', error);
         }
       };
-      
+
       incrementViewCount();
     }
   }, [isOpen, content._id, content.fileType]);
@@ -77,7 +136,7 @@ const ContentModal = ({ isOpen, onClose, content }) => {
           {content.gallery.map((image, index) => {
             // Enhanced image URL extraction with debugging
             let imageUrl = '';
-            
+
             // Handle various image formats
             if (typeof image === 'string') {
               imageUrl = image;
@@ -92,17 +151,21 @@ const ContentModal = ({ isOpen, onClose, content }) => {
                 console.log(`Gallery image ${index} using publicId:`, imageUrl);
               }
             }
-            
+
             console.log(`Gallery image ${index} final URL:`, imageUrl);
-            
+
             if (!imageUrl) {
               console.log(`Gallery image ${index} has no valid URL, skipping`);
               return null;
             }
-            
+
             return (
-              <div key={index} className="relative overflow-hidden rounded-lg group cursor-pointer">
-                <Image 
+              <div
+                key={index}
+                className="relative overflow-hidden rounded-lg group cursor-pointer"
+                onClick={() => openGallery(content.gallery, index)} // assuming content.gallery is an array of image URLs
+              >
+                <Image
                   src={imageUrl}
                   alt={`${content.title || content.name} gallery ${index + 1}`}
                   className="w-full h-32 object-cover group-hover:scale-105 transition-transform duration-300"
@@ -122,7 +185,7 @@ const ContentModal = ({ isOpen, onClose, content }) => {
 
   const renderStats = () => {
     const stats = [];
-    
+
     if (content.viewCount) stats.push({ label: 'Views', value: content.viewCount, icon: 'Eye' });
     if (content.photos) stats.push({ label: 'Photos', value: content.photos, icon: 'Image' });
     if (content.articles) stats.push({ label: 'Articles', value: content.articles, icon: 'FileText' });
@@ -154,9 +217,9 @@ const ContentModal = ({ isOpen, onClose, content }) => {
   };
 
   return (
-    <Modal 
-      isOpen={isOpen} 
-      onClose={onClose} 
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
       title={content.title || content.name}
       size="5xl"
     >
@@ -168,7 +231,7 @@ const ContentModal = ({ isOpen, onClose, content }) => {
         {(content.fileType !== 'video' && (content.thumbnailUrl || content.thumbnailPath || content.thumbnail || content.image || content.coverImage || content.filePath)) && (
           <div className="mb-6">
             <div className="relative overflow-hidden rounded-lg">
-              <Image 
+              <Image
                 src={content.thumbnailUrl || content.thumbnailPath || content.thumbnail || content.image || content.coverImage || content.filePath}
                 alt={content.title || content.name}
                 className="w-full object-cover"
@@ -218,6 +281,52 @@ const ContentModal = ({ isOpen, onClose, content }) => {
         {/* Gallery - Make sure this is always rendered when gallery exists */}
         {renderGallery()}
       </div>
+
+      {isGalleryOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center">
+          <button
+            className="absolute top-4 right-4 text-white text-2xl"
+            onClick={() => setIsGalleryOpen(false)}
+          >
+            &times;
+          </button>
+
+          <div className="relative max-w-4xl w-full px-4">
+            {/* Left Navigation */}
+            <button
+              onClick={() =>
+                setCurrentIndex((prev) => (prev > 0 ? prev - 1 : galleryImages.length - 1))
+              }
+              className="absolute left-0 top-1/2 transform -translate-y-1/2 bg-gray-800 bg-opacity-70 hover:bg-opacity-90 p-2 rounded-full z-10"
+              title="Previous"
+            >
+              <Icon name="ChevronLeft" size={24} color="white" />
+            </button>
+
+            {/* Image */}
+            <Image
+              src={galleryImages[currentIndex]}
+              alt={`Gallery image ${currentIndex + 1}`}
+              className="w-full max-h-[80vh] object-contain mx-auto"
+              onTouchStart={handleTouchStart}
+              onTouchEnd={handleTouchEnd}
+            />
+
+            {/* Right Navigation */}
+            <button
+              onClick={() =>
+                setCurrentIndex((prev) => (prev < galleryImages.length - 1 ? prev + 1 : 0))
+              }
+              className="absolute right-0 top-1/2 transform -translate-y-1/2 bg-gray-800 bg-opacity-70 hover:bg-opacity-90 p-2 rounded-full z-10"
+              title="Next"
+            >
+              <Icon name="ChevronRight" size={24} color="white" />
+            </button>
+          </div>
+
+        </div>
+      )}
+
     </Modal>
   );
 };

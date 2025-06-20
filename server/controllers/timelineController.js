@@ -81,6 +81,23 @@ const createTimeline = asyncHandler(async (req, res) => {
       try {
         gallery = JSON.parse(req.body.galleryData);
         console.log(`Using ${gallery.length} existing gallery URLs from galleryData`);
+        
+        // Ensure each gallery item is correctly formatted as an object with required fields
+        gallery = gallery.map(item => {
+          // If the item is already correctly formatted, return it as is
+          if (typeof item === 'object' && item.filePath) {
+            return item;
+          }
+          // If it's a string URL, convert it to proper format
+          if (typeof item === 'string') {
+            return {
+              filePath: item,
+              publicId: item.split('/').pop().split('.')[0], // Extract a publicId from URL
+              fileType: 'image' // Default to image type
+            };
+          }
+          return item;
+        });
       } catch (e) {
         console.error('Error parsing galleryData:', e);
       }
@@ -163,8 +180,25 @@ const updateTimeline = asyncHandler(async (req, res) => {
     } else if (req.body.galleryData) {
       // If gallery data is provided in JSON string
       try {
-        updatedData.gallery = JSON.parse(req.body.galleryData);
-        console.log(`Using ${updatedData.gallery.length} existing gallery URLs for timeline update`);
+        let galleryData = JSON.parse(req.body.galleryData);
+        console.log(`Using ${galleryData.length} existing gallery URLs for timeline update`);
+        
+        // Ensure each gallery item is correctly formatted as an object with required fields
+        updatedData.gallery = galleryData.map(item => {
+          // If the item is already correctly formatted, return it as is
+          if (typeof item === 'object' && item.filePath) {
+            return item;
+          }
+          // If it's a string URL, convert it to proper format
+          if (typeof item === 'string') {
+            return {
+              filePath: item,
+              publicId: item.split('/').pop().split('.')[0], // Extract a publicId from URL
+              fileType: 'image' // Default to image type
+            };
+          }
+          return item;
+        });
       } catch (e) {
         console.error('Error parsing galleryData for update:', e);
       }

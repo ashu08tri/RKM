@@ -58,7 +58,20 @@ const ContentManagement = () => {
           break;
         case 'information':
           response = await informationService.getInformationItems();
-          setInformationContent(Array.isArray(response.data) ? response.data : (response.data?.data || []));
+          console.log('Information response:', response);
+
+          const infoGroups = Array.isArray(response.data)
+            ? response.data
+            : (response.data?.data || []);
+
+          const flattened = infoGroups.flatMap(group =>
+            group.items.map(item => ({
+              ...item,
+              groupTitle: group.groupTitle,
+            }))
+          );
+
+          setInformationContent(flattened);
           break;
         default:
           break;
@@ -71,6 +84,7 @@ const ContentManagement = () => {
     }
   }, [activeTab]);
 
+
   useEffect(() => {
     fetchData();
   }, [fetchData]);
@@ -82,10 +96,10 @@ const ContentManagement = () => {
 
   const handleEdit = (item) => {
     console.log('Editing item:', item);
-    
+
     // Create a copy of the item to avoid modifying the original data
     const itemForEdit = { ...item };
-    
+
     // For media items, ensure type field is properly mapped from fileType
     if (activeTab === 'media') {
       // Map fileType to type for the form
@@ -95,12 +109,12 @@ const ContentManagement = () => {
         // Default to first video option
         itemForEdit.type = 'Documentary';
       }
-      
+
       // Ensure mediaUrl is set from filePath if needed
       if (!itemForEdit.mediaUrl && itemForEdit.filePath) {
         itemForEdit.mediaUrl = itemForEdit.filePath;
       }
-      
+
       // Ensure thumbnailUrl is set for video thumbnails
       if (itemForEdit.fileType === 'video') {
         if (!itemForEdit.thumbnailUrl && itemForEdit.thumbnailPath) {
@@ -108,7 +122,7 @@ const ContentManagement = () => {
         }
       }
     }
-    
+
     console.log('Prepared for edit:', itemForEdit);
     setCurrentItem(itemForEdit);
     setIsModalOpen(true);
@@ -132,14 +146,16 @@ const ContentManagement = () => {
   };
 
   const handleConfirmDelete = async () => {
-    if (!itemToDelete || !itemToDelete._id) return;
+    console.log(itemToDelete);
     
+    if (!itemToDelete || !itemToDelete._id) return;
+
     setLoading(true);
     setError(null);
-    
+
     try {
       console.log(`Attempting to delete ${activeTab} item with ID: ${itemToDelete._id}`);
-      
+
       let response;
       switch (activeTab) {
         case 'media':
@@ -155,22 +171,22 @@ const ContentManagement = () => {
           response = await teamService.deleteTeamMember(itemToDelete._id);
           break;
         case 'information':
-          response = await informationService.deleteInformationItem(itemToDelete._id);
+          response = await informationService.deleteInformationItem(itemToDelete.groupTitle, itemToDelete._id);
           break;
         default:
           throw new Error('Invalid content type for delete operation');
       }
-      
+
       console.log(`Deletion response:`, response);
-      
+
       // Close the modal
       handleCloseDeleteModal();
-      
+
       // Refresh data after a short delay to ensure the backend has time to complete the deletion
       setTimeout(() => {
         fetchData();
       }, 500);
-      
+
     } catch (err) {
       console.error(`Error deleting ${activeTab} item:`, err);
       setError(`Failed to delete item. ${err.response?.data?.message || err.message || 'Please try again later.'}`);
@@ -179,123 +195,123 @@ const ContentManagement = () => {
     }
   };
 
-  const handleFormSubmit = async (formData, additionalData = {}) => {
-  setLoading(true);
-  setError(null);
+  const handleFormSubmit = async (formData, additionalData = {}, infoItemID) => {
+    setLoading(true);
+    setError(null);
 
-  const isRawFormData = formData instanceof FormData;
-  const data = isRawFormData ? formData : new FormData();
-  const { multipleFiles } = additionalData;
+    const isRawFormData = formData instanceof FormData;
+    const data = isRawFormData ? formData : new FormData();
+    const { multipleFiles } = additionalData;
 
-  // Only do this if formData is not already FormData (i.e., raw object)
-  if (!isRawFormData) {
-    console.log('Form data before processing:', formData);
-    console.log('Additional form data:', additionalData);
+    // Only do this if formData is not already FormData (i.e., raw object)
+    if (!isRawFormData) {
+      console.log('Form data before processing:', formData);
+      console.log('Additional form data:', additionalData);
 
-    const isEditing = currentItem && currentItem._id;
-    const fileFieldsToSkip = [];
+      const isEditing = currentItem && currentItem._id;
+      const fileFieldsToSkip = [];
 
-    if (isEditing) {
-      const fileFields = ['mediafile', 'photo', 'image', 'coverImage', 'imageUrl', 'photoUrl'];
-      fileFields.forEach(field => {
-        if (field in formData && !formData[field]) {
-          fileFieldsToSkip.push(field);
-        }
-      });
-    }
-
-    // Gallery handling
-    const galleryFiles = formData.gallery;
-    delete formData.gallery;
-
-    if (galleryFiles && galleryFiles.length > 0) {
-      for (let i = 0; i < galleryFiles.length; i++) {
-        const file = galleryFiles[i];
-        if (file instanceof File) {
-          data.append('gallery', file);
-        }
-      }
       if (isEditing) {
-        data.append('replaceGallery', 'true');
+        const fileFields = ['mediafile', 'photo', 'image', 'coverImage', 'imageUrl', 'photoUrl'];
+        fileFields.forEach(field => {
+          if (field in formData && !formData[field]) {
+            fileFieldsToSkip.push(field);
+          }
+        });
       }
-    } else if (isEditing) {
-      if (multipleFiles?.gallery?.length === 0) {
-        data.append('clearGallery', 'true');
-      } else if (multipleFiles?.gallery?.length > 0) {
-        const existingImages = multipleFiles.gallery
-          .filter(url => !url.startsWith('blob:'))
-          .map(url => ({
-            url: url,
-            publicId: url.split('/').pop().split('.')[0]
-          }));
 
-        if (existingImages.length > 0) {
-          data.append('existingGallery', JSON.stringify(existingImages));
-        } else {
+      // Gallery handling
+      const galleryFiles = formData.gallery;
+      delete formData.gallery;
+
+      if (galleryFiles && galleryFiles.length > 0) {
+        for (let i = 0; i < galleryFiles.length; i++) {
+          const file = galleryFiles[i];
+          if (file instanceof File) {
+            data.append('gallery', file);
+          }
+        }
+        if (isEditing) {
           data.append('replaceGallery', 'true');
         }
-      }
-    }
+      } else if (isEditing) {
+        if (multipleFiles?.gallery?.length === 0) {
+          data.append('clearGallery', 'true');
+        } else if (multipleFiles?.gallery?.length > 0) {
+          const existingImages = multipleFiles.gallery
+            .filter(url => !url.startsWith('blob:'))
+            .map(url => ({
+              url: url,
+              publicId: url.split('/').pop().split('.')[0]
+            }));
 
-    // Convert expectedStartDate to ISO
-    if (formData.expectedStartDate) {
-      const date = new Date(formData.expectedStartDate);
-      if (!isNaN(date.getTime())) {
-        formData.expectedStartDate = date.toISOString();
+          if (existingImages.length > 0) {
+            data.append('existingGallery', JSON.stringify(existingImages));
+          } else {
+            data.append('replaceGallery', 'true');
+          }
+        }
       }
-    }
 
-    if ((activeTab === 'programs' || activeTab === 'projects') && formData.title && !formData.name) {
-      formData.name = formData.title;
-      delete formData.title;
-    }
-
-    Object.keys(formData).forEach(key => {
-      if (isEditing && fileFieldsToSkip.includes(key)) return;
-      if (formData[key] !== null && formData[key] !== undefined) {
-        data.append(key, formData[key]);
+      // Convert expectedStartDate to ISO
+      if (formData.expectedStartDate) {
+        const date = new Date(formData.expectedStartDate);
+        if (!isNaN(date.getTime())) {
+          formData.expectedStartDate = date.toISOString();
+        }
       }
-    });
-  } else {
-    console.log('Using FormData instance directly, skipping conversion.');
-  }
 
-  try {
-    if (currentItem && currentItem._id) {
-      switch (activeTab) {
-        case 'media': await mediaService.updateMediaItem(currentItem._id, data); break;
-        case 'programs': await programService.updateProgram(currentItem._id, data); break;
-        case 'projects': await projectService.updateProject(currentItem._id, data); break;
-        case 'team': await teamService.updateTeamMember(currentItem._id, data); break;
-        case 'information': await informationService.updateInformationItem(currentItem._id, data); break;
-        default: throw new Error('Invalid content type for update');
+      if ((activeTab === 'programs' || activeTab === 'projects') && formData.title && !formData.name) {
+        formData.name = formData.title;
+        delete formData.title;
       }
+
+      Object.keys(formData).forEach(key => {
+        if (isEditing && fileFieldsToSkip.includes(key)) return;
+        if (formData[key] !== null && formData[key] !== undefined) {
+          data.append(key, formData[key]);
+        }
+      });
     } else {
-      switch (activeTab) {
-        case 'media': await mediaService.createMediaItem(data); break;
-        case 'programs': await programService.createProgram(data); break;
-        case 'projects': await projectService.createProject(data); break;
-        case 'team': await teamService.createTeamMember(data); break;
-        case 'information': await informationService.createInformationItem(data); break;
-        default: throw new Error('Invalid content type for create');
-      }
+      console.log('Using FormData instance directly, skipping conversion.');
     }
 
-    handleCloseModal();
-    fetchData();
-  } catch (err) {
-    console.error('Form submission error:', err);
-    setError(err.response?.data?.message || 'An error occurred during submission.');
-  } finally {
-    setLoading(false);
-  }
-};
+    try {
+      if (currentItem && currentItem._id) {   
+        switch (activeTab) {
+          case 'media': await mediaService.updateMediaItem(currentItem._id, data); break;
+          case 'programs': await programService.updateProgram(currentItem._id, data); break;
+          case 'projects': await projectService.updateProject(currentItem._id, data); break;
+          case 'team': await teamService.updateTeamMember(currentItem._id, data); break;
+          case 'information': await informationService.updateInformationItem(currentItem.groupTitle, currentItem._id, data);break;
+          default: throw new Error('Invalid content type for update');
+        }
+      } else {
+        switch (activeTab) {
+          case 'media': await mediaService.createMediaItem(data); break;
+          case 'programs': await programService.createProgram(data); break;
+          case 'projects': await projectService.createProject(data); break;
+          case 'team': await teamService.createTeamMember(data); break;
+          case 'information': await informationService.createInformationItem(data); break;
+          default: throw new Error('Invalid content type for create');
+        }
+      }
+
+      handleCloseModal();
+      fetchData();
+    } catch (err) {
+      console.error('Form submission error:', err);
+      setError(err.response?.data?.message || 'An error occurred during submission.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
 
   const getFormConfig = (contentType) => {
     // Determine if we're editing or creating new 
     const isEditing = !!currentItem;
-    
+
     switch (contentType) {
       case 'media':
         return [
@@ -343,12 +359,15 @@ const ContentManagement = () => {
         ];
       case 'information':
         return [
+          { name: 'groupTitle', label: 'Group Title', type: 'select', options: ['governmentSchemes', 'agriculturalResources', 'educationalMaterials', 'newsUpdates'], required: true },
           { name: 'title', label: 'Title', type: 'text', required: true },
-          { name: 'content', label: 'Content', type: 'textarea', required: true },
+          { name: 'description', label: 'Description', type: 'textarea', required: true },
           { name: 'image', label: isEditing ? 'Image (only if changing)' : 'Image', type: 'file', required: !isEditing },
-          { name: 'category', label: 'Category', type: 'select', options: ['Article', 'Announcement', 'News'], required: true },
-          { name: 'status', label: 'Status', type: 'select', options: ['draft', 'published'], required: true },
-          { name: 'uploadDate', label: 'Date', type: 'date', required: false },
+          { name: 'category', label: 'Category', type: 'select', options: ['subsidy', 'certification', 'insurance', 'seasonal', 'sustainable', 'weather'], required: true },
+          { name: 'region', label: 'Region', type: 'select', options: ['national', 'north', 'south', 'east', 'west', 'all'], required: true },
+          { name: 'date', label: 'Date', type: 'date', required: true },
+          { name: 'engagementMetric', label: 'Engagement Metric', type: 'number', required: false },
+          { name: 'fileType', label: 'File Type', type: 'select', options: ['document', 'image', 'video'], required: true },
         ];
       default:
         return [];
@@ -372,34 +391,35 @@ const ContentManagement = () => {
         return null;
       }
     };
-    
+
     // Get the most recent date between updatedAt and createdAt
     const dateText = formatDate(item.updatedAt) || formatDate(item.createdAt) || formatDate(item.uploadDate) || 'Update date unavailable';
-    
+
     // Format the actual date for display
-    const formattedDate = item.updatedAt || item.createdAt || item.uploadDate ? 
+    const formattedDate = item.updatedAt || item.createdAt || item.uploadDate ?
       new Date(item.updatedAt || item.createdAt || item.uploadDate).toLocaleDateString('en-US', {
-        year: 'numeric', 
-        month: 'short', 
+        year: 'numeric',
+        month: 'short',
         day: 'numeric'
       }) : '';
-    
+
     // Determine the best image URL to use
     let imageUrl = item[imageUrlKey];
-    
+
     // For videos, prefer thumbnail if available
     if (item.fileType === 'video') {
       imageUrl = item.thumbnailUrl || item.thumbnailPath || imageUrl;
     }
-    
+
     return (
       <div key={item._id} className="bg-white p-4 rounded-lg shadow flex items-center justify-between">
         <div className="flex items-center space-x-4">
           {imageUrl && <img src={imageUrl} alt={item[titleKey]} className="w-24 h-16 rounded object-cover" />}
           <div>
+            {item && item.groupTitle && <p className="text-xs text-gray-400 mt-1">Group: {item.groupTitle}</p>}
             <h3 className="text-lg font-medium text-gray-900">{item[titleKey] || 'Untitled'}</h3>
             <p className="text-sm text-gray-500">
-              <span className="inline-block mr-2">{formattedDate}</span> • 
+              <span className="inline-block mr-2">{formattedDate}</span> •
               <span className="inline-block ml-2 italic">{dateText}</span>
             </p>
             {item.fileType === 'video' && (
@@ -428,15 +448,15 @@ const ContentManagement = () => {
           </div>
         </div>
         <div className="flex items-center space-x-2">
-          <button 
-            onClick={() => handleEdit(item)} 
+          <button
+            onClick={() => handleEdit(item)}
             className="p-2 rounded-md hover:bg-gray-100"
             title="Edit"
           >
             <Icon name="Edit" size={16} />
           </button>
-          <button 
-            onClick={() => handleDelete(item)} 
+          <button
+            onClick={() => handleDelete(item)}
             className="p-2 rounded-md hover:bg-gray-100 text-red-500"
             title="Delete"
           >
@@ -503,15 +523,15 @@ const ContentManagement = () => {
               </div>
             </div>
             <div className="flex items-center space-x-2">
-              <button 
-                onClick={() => handleEdit(member)} 
+              <button
+                onClick={() => handleEdit(member)}
                 className="p-2 rounded-md hover:bg-gray-100"
                 title="Edit"
               >
                 <Icon name="Edit" size={16} />
               </button>
-              <button 
-                onClick={() => handleDelete(member)} 
+              <button
+                onClick={() => handleDelete(member)}
                 className="p-2 rounded-md hover:bg-gray-100 text-red-500"
                 title="Delete"
               >
@@ -521,7 +541,7 @@ const ContentManagement = () => {
           </div>
         ), 'No team members available yet.');
       case 'information':
-        return renderList(informationContent, item => renderGenericListItem(item, 'imageUrl', 'title'), 'No information content available yet.');
+        return renderList(informationContent, item => renderGenericListItem(item, 'image', 'title'), 'No information content available yet.');
       default:
         return <div className="text-center py-12">Select a category to manage content.</div>;
     }
@@ -534,7 +554,7 @@ const ContentManagement = () => {
   // Add global loading indicator that shows during API requests
   const GlobalLoadingIndicator = ({ isVisible }) => {
     if (!isVisible) return null;
-    
+
     return (
       <div className="fixed top-0 left-0 w-full h-1 bg-green-100 overflow-hidden z-50">
         <div className="h-full bg-green-700 animate-loadingBar"></div>
@@ -545,16 +565,15 @@ const ContentManagement = () => {
   return (
     <div className="space-y-6 relative">
       <GlobalLoadingIndicator isVisible={loading} />
-      
+
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         {contentSections.map((section) => (
           <button
             key={section.id}
             onClick={() => setActiveTab(section.id)}
             disabled={loading}
-            className={`p-4 rounded-lg border-2 transition-all text-left ${
-              activeTab === section.id ? 'border-green-600 bg-green-50' : 'border-gray-200 hover:border-green-300'
-            } ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}
+            className={`p-4 rounded-lg border-2 transition-all text-left ${activeTab === section.id ? 'border-green-600 bg-green-50' : 'border-gray-200 hover:border-green-300'
+              } ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}
           >
             <div className="flex items-center space-x-3 mb-2">
               <Icon name={section.icon} size={20} className={activeTab === section.id ? 'text-green-700' : 'text-gray-500'} />
@@ -574,10 +593,9 @@ const ContentManagement = () => {
             {contentSections.find((s) => s.id === activeTab)?.description}
           </p>
         </div>
-        <button 
-          className={`bg-green-700 text-white px-4 py-2 rounded-md hover:bg-green-800 flex items-center space-x-2 ${
-            loading ? 'opacity-70 cursor-not-allowed' : ''
-          }`} 
+        <button
+          className={`bg-green-700 text-white px-4 py-2 rounded-md hover:bg-green-800 flex items-center space-x-2 ${loading ? 'opacity-70 cursor-not-allowed' : ''
+            }`}
           onClick={handleAddNew}
           disabled={loading}
         >
@@ -610,12 +628,11 @@ const ContentManagement = () => {
         onClose={handleCloseDeleteModal}
         onConfirm={handleConfirmDelete}
         title="Confirm Deletion"
-        message={`Are you sure you want to delete this ${
-          activeTab === 'media' ? 'media item' : 
-          activeTab === 'programs' ? 'program' : 
-          activeTab === 'projects' ? 'project' : 
-          activeTab === 'team' ? 'team member' : 'information item'
-        }?`}
+        message={`Are you sure you want to delete this ${activeTab === 'media' ? 'media item' :
+          activeTab === 'programs' ? 'program' :
+            activeTab === 'projects' ? 'project' :
+              activeTab === 'team' ? 'team member' : 'information item'
+          }?`}
         isLoading={loading}
       />
     </div>
